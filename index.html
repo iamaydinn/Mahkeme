@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v9.0</title>
+    <title>Adalet Simülasyonu v10.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -45,14 +45,13 @@
             transform: rotate(-12deg);
             opacity: 0.8;
         }
-
-        /* Bildirim Animasyonu */
         .toast-enter { animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        
-        /* Konuşmacı Barı Animasyonu */
         .speaker-change { animation: flashBg 1s ease; }
         @keyframes flashBg { 0% { background-color: #fbbf24; } 100% { background-color: #1e293b; } }
+        
+        /* Bulanıklaştırma Efekti (Gizli Oylar İçin) */
+        .blur-overlay { filter: blur(8px); pointer-events: none; user-select: none; }
     </style>
 </head>
 <body class="flex flex-col overflow-hidden bg-slate-900 text-slate-100 h-full">
@@ -61,8 +60,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 
-    <!-- SES DOSYASI (GİZLİ) -->
     <audio id="alert-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+    <audio id="gavel-sound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
 
     <!-- 1. GİRİŞ EKRANI -->
     <div id="login-screen" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center p-4 h-full w-full">
@@ -105,14 +104,12 @@
             </div>
         </header>
 
-        <!-- SÖZ HAKKI BUTONU -->
         <button onclick="requestSpeech()" class="fixed bottom-24 left-4 z-50 bg-yellow-500 hover:bg-yellow-400 text-slate-900 p-4 rounded-full shadow-2xl transition-transform active:scale-90 border-4 border-white/20 flex flex-col items-center justify-center w-16 h-16 group">
             <i class="fa-solid fa-hand text-xl group-hover:-translate-y-1 transition"></i>
             <span class="text-[8px] font-bold uppercase mt-1">Söz İste</span>
         </button>
 
         <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-20 bg-slate-200">
-            <!-- TAB 1: CANLI -->
             <div id="tab-live" class="p-4 space-y-4 h-full flex flex-col">
                 <div class="bg-white p-4 rounded-2xl shadow-lg border-l-4 border-blue-500">
                     <h3 class="font-bold text-slate-700 mb-2 text-sm">Vicdani Kanaat İbresi</h3>
@@ -127,100 +124,23 @@
                     </div>
                     <p id="sentiment-status" class="text-center text-[10px] font-mono text-slate-400 mt-2 h-4"></p>
                 </div>
-                
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
                     <h4 class="text-xs font-bold text-blue-800 mb-2">Duruşma Hatırlatması</h4>
                     <p class="text-xs text-blue-600">Lütfen 'Kanıtlar' sekmesindeki olay yeri videosunu ve bilirkişi raporlarını dikkatle inceleyiniz.</p>
                 </div>
             </div>
 
-            <!-- TAB 2: KANITLAR -->
             <div id="tab-evidence" class="hidden p-4 space-y-5">
-                <div class="flex items-center justify-between border-b border-slate-300 pb-2">
-                    <span class="text-xs font-black text-slate-600 uppercase tracking-widest">2025/456 - Delil Klasörü</span>
-                    <i class="fa-solid fa-folder-closed text-slate-400"></i>
-                </div>
-                
-                <!-- DELİL 1: VİDEO -->
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
-                    <div class="bg-slate-800 px-3 py-2 flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-white"><i class="fa-solid fa-file-video text-red-400 mr-2"></i> DELİL 1: Olay Yeri Kaydı</h4>
-                        <span class="text-[10px] bg-red-500/20 text-red-200 px-2 py-0.5 rounded">KRİMİNAL</span>
-                    </div>
-                    <div class="aspect-video bg-black relative">
-                        <video controls playsinline class="w-full h-full object-contain" poster="https://placehold.co/600x400/000000/FFFFFF?text=Video+Yükleniyor...">
-                            <source src="olay_yeri.mp4" type="video/mp4">
-                            Video oynatılamıyor.
-                        </video>
-                    </div>
-                    <div class="p-3 official-doc">
-                        <p class="text-[10px] text-slate-700 font-serif leading-snug">
-                            <span class="font-bold">Tespit:</span> Olay mahalinde kırık vazo parçaları ve duvarda 5x5cm çapında darbe izi.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- DELİL 2: WP1 -->
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP1.png')">
-                    <div class="flex items-center p-3 border-b border-slate-100">
-                        <i class="fa-brands fa-whatsapp text-2xl text-green-500 mr-3"></i>
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-800">DELİL 2: İletişim Kaydı (Başlangıç)</h4>
-                            <p class="text-[10px] text-slate-500">Ekonomik tartışma başlangıcı.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- DELİL 3: WP2 -->
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP2.png')">
-                    <div class="flex items-center p-3 border-b border-slate-100">
-                        <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 mr-3"></i>
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-800">DELİL 3: İletişim Kaydı (Tehdit)</h4>
-                            <p class="text-[10px] text-slate-500">Tehdit içerikli mesajlar.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- DELİL 4: TANIK -->
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
-                    <div class="bg-slate-100 px-3 py-2 border-b border-slate-200">
-                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-secret text-indigo-500 mr-2"></i> DELİL 4: Tanık İfadesi</h4>
-                    </div>
-                    <div class="p-4 official-doc relative">
-                        <div class="absolute top-2 right-2 border-2 border-red-800/30 text-red-800/30 text-[10px] font-black p-1 rotate-12 rounded stamp">GİZLİ</div>
-                        <p class="text-[11px] text-slate-700 font-serif leading-relaxed text-justify italic">
-                            "Olay gecesi saat 23:00 sularında üst kattan bağırışmalar ve büyük bir cam kırılma sesi duydum. 5 dakika sonra Elif Hanım ağlayarak evden çıktı." (Komşu Zeynep K.)
-                        </p>
-                    </div>
-                </div>
+                <div class="flex items-center justify-between border-b border-slate-300 pb-2"><span class="text-xs font-black text-slate-600 uppercase tracking-widest">2025/456 - Delil Klasörü</span><i class="fa-solid fa-folder-closed text-slate-400"></i></div>
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200"><div class="bg-slate-800 px-3 py-2 flex justify-between items-center"><h4 class="text-xs font-bold text-white"><i class="fa-solid fa-file-video text-red-400 mr-2"></i> DELİL 1: Olay Yeri Kaydı</h4><span class="text-[10px] bg-red-500/20 text-red-200 px-2 py-0.5 rounded">KRİMİNAL</span></div><div class="aspect-video bg-black relative"><video controls playsinline class="w-full h-full object-contain" poster="https://placehold.co/600x400/000000/FFFFFF?text=Video+Yükleniyor..."><source src="olay_yeri.mp4" type="video/mp4">Video oynatılamıyor.</video></div><div class="p-3 official-doc"><p class="text-[10px] text-slate-700 font-serif leading-snug"><span class="font-bold">Tespit:</span> Olay mahalinde kırık vazo parçaları.</p></div></div>
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP1.png')"><div class="flex items-center p-3 border-b border-slate-100"><i class="fa-brands fa-whatsapp text-2xl text-green-500 mr-3"></i><div><h4 class="text-xs font-bold text-slate-800">DELİL 2: İletişim (Başlangıç)</h4><p class="text-[10px] text-slate-500">Ekonomik tartışma.</p></div></div></div>
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP2.png')"><div class="flex items-center p-3 border-b border-slate-100"><i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 mr-3"></i><div><h4 class="text-xs font-bold text-slate-800">DELİL 3: İletişim (Tehdit)</h4><p class="text-[10px] text-slate-500">Tehdit içerikli mesajlar.</p></div></div></div>
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200"><div class="bg-slate-100 px-3 py-2 border-b border-slate-200"><h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-secret text-indigo-500 mr-2"></i> DELİL 4: Tanık İfadesi</h4></div><div class="p-4 official-doc relative"><div class="absolute top-2 right-2 border-2 border-red-800/30 text-red-800/30 text-[10px] font-black p-1 rotate-12 rounded stamp">GİZLİ</div><p class="text-[11px] text-slate-700 font-serif leading-relaxed text-justify italic">"Olay gecesi saat 23:00 sularında üst kattan bağırışmalar ve büyük bir cam kırılma sesi duydum." (Komşu Zeynep K.)</p></div></div>
             </div>
 
-            <!-- TAB 3: SOHBET -->
-            <div id="tab-chat" class="hidden flex flex-col h-full">
-                <div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto"></div>
-                <div class="bg-white p-2 border-t flex gap-2 items-center">
-                    <input type="text" id="chat-input" placeholder="Müzakereye katıl..." class="flex-1 bg-slate-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                    <button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition"><i class="fa-solid fa-paper-plane text-sm"></i></button>
-                </div>
-            </div>
-
-            <!-- TAB 4: SORU -->
-            <div id="tab-comm" class="hidden p-4">
-                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                    <h3 class="font-bold text-indigo-900 text-sm mb-2">Hakime Özel Soru</h3>
-                    <textarea id="question-input" rows="3" placeholder="Gizli soru..." class="w-full p-3 rounded-lg text-sm border border-indigo-200"></textarea>
-                    <button onclick="sendQuestion()" class="w-full mt-2 bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold">GÖNDER</button>
-                </div>
-            </div>
-
-            <!-- TAB 5: OY -->
-            <div id="tab-vote" class="hidden p-6 flex flex-col h-full justify-center text-center space-y-4">
-                <h2 class="text-xl font-bold text-slate-800">Karar Vakti</h2>
-                <button onclick="submitVote('SUÇLU')" class="w-full py-4 bg-red-500 text-white rounded-xl shadow-lg font-bold text-lg">SUÇLU</button>
-                <button onclick="submitVote('SUÇSUZ')" class="w-full py-4 bg-green-500 text-white rounded-xl shadow-lg font-bold text-lg">SUÇSUZ</button>
-                <p id="vote-status" class="font-bold text-blue-600 text-sm"></p>
-            </div>
+            <div id="tab-chat" class="hidden flex flex-col h-full"><div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto"></div><div class="bg-white p-2 border-t flex gap-2 items-center"><input type="text" id="chat-input" placeholder="Müzakereye katıl..." class="flex-1 bg-slate-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"><button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition"><i class="fa-solid fa-paper-plane text-sm"></i></button></div></div>
+            <div id="tab-comm" class="hidden p-4"><div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100"><h3 class="font-bold text-indigo-900 text-sm mb-2">Hakime Özel Soru</h3><textarea id="question-input" rows="3" placeholder="Gizli soru..." class="w-full p-3 rounded-lg text-sm border border-indigo-200"></textarea><button onclick="sendQuestion()" class="w-full mt-2 bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold">GÖNDER</button></div></div>
+            <div id="tab-vote" class="hidden p-6 flex flex-col h-full justify-center text-center space-y-4"><h2 class="text-xl font-bold text-slate-800">Karar Vakti</h2><button onclick="submitVote('SUÇLU')" class="w-full py-4 bg-red-500 text-white rounded-xl shadow-lg font-bold text-lg">SUÇLU</button><button onclick="submitVote('SUÇSUZ')" class="w-full py-4 bg-green-500 text-white rounded-xl shadow-lg font-bold text-lg">SUÇSUZ</button><p id="vote-status" class="font-bold text-blue-600 text-sm"></p></div>
         </main>
 
         <nav class="bg-white border-t border-slate-200 flex justify-around pb-4 pt-2 h-16 shadow-[0_-5px_10px_rgba(0,0,0,0.05)] z-40 fixed bottom-0 left-0 right-0 w-full text-[9px]">
@@ -234,140 +154,114 @@
 
     <!-- 3. AKILLI TAHTA MODU -->
     <div id="projector-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-50 overflow-hidden flex flex-col p-6 relative">
-        
-        <!-- BİLDİRİM ALANI (SAĞ ÜST) -->
         <div id="notification-area" class="absolute top-24 right-6 w-96 z-[100] space-y-3 pointer-events-none"></div>
 
         <header class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6">
-            <div>
-                <!-- CANLI KONUŞMACI GÖSTERGESİ -->
+            <div class="flex items-center gap-6">
                 <div id="current-speaker-box" class="bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-yellow-400 shadow-lg transition-all duration-500">
                     <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">KÜRSÜDEKİ KONUŞMACI</span>
-                    <h2 id="current-speaker-name" class="text-2xl font-bold text-white flex items-center gap-3">
-                        <i class="fa-solid fa-microphone-lines text-yellow-400 animate-pulse"></i>
-                        <span id="speaker-text">Hakim</span>
-                    </h2>
+                    <h2 id="current-speaker-name" class="text-2xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-microphone-lines text-yellow-400 animate-pulse"></i><span id="speaker-text">Hakim</span></h2>
+                </div>
+                <!-- ZAMANLAYICI -->
+                <div id="timer-box" class="hidden bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-red-500 shadow-lg flex flex-col items-center justify-center w-32">
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest">SÜRE</span>
+                    <span id="timer-display" class="text-3xl font-mono font-bold text-red-400">00:00</span>
                 </div>
             </div>
-            <div class="text-right">
-                <h1 class="text-3xl font-bold text-yellow-400 tracking-wider">ADALET SİM.</h1>
-                <div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div>
-            </div>
+            <div class="text-right"><h1 class="text-3xl font-bold text-yellow-400 tracking-wider">ADALET SİM.</h1><div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div></div>
         </header>
 
         <div class="flex-1 grid grid-cols-12 gap-6">
-            <!-- SOL PANEL -->
             <div class="col-span-7 flex flex-col gap-4">
                 <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
                     <h2 class="text-sm font-bold text-slate-400 uppercase mb-6 text-center">Sınıfın Vicdani Kanaati</h2>
                     <div class="relative w-full h-10 bg-slate-700 rounded-full mb-4">
                         <div class="absolute inset-0 rounded-full bg-gradient-to-r from-red-600 via-slate-600 to-green-600 opacity-50"></div>
-                        <div id="proj-sentiment-marker" class="absolute top-[-8px] w-2 h-14 bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all duration-700" style="left: 50%;">
-                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-2 py-0.5 rounded font-bold text-sm shadow" id="proj-sentiment-val">50%</div>
-                        </div>
+                        <div id="proj-sentiment-marker" class="absolute top-[-8px] w-2 h-14 bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all duration-700" style="left: 50%;"><div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-2 py-0.5 rounded font-bold text-sm shadow" id="proj-sentiment-val">50%</div></div>
                     </div>
-                    <div class="flex justify-between text-sm font-bold mt-2 px-1">
-                        <span class="text-red-500">DAVACI</span>
-                        <span class="text-slate-400">TARAFSIZ</span>
-                        <span class="text-green-500">SANIK</span>
-                    </div>
+                    <div class="flex justify-between text-sm font-bold mt-2 px-1"><span class="text-red-500">DAVACI</span><span class="text-slate-400">TARAFSIZ</span><span class="text-green-500">SANIK</span></div>
                 </div>
 
-                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex-1">
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex-1 relative overflow-hidden">
                     <h2 class="text-sm font-bold text-slate-400 uppercase mb-4">Oylama Durumu</h2>
-                    <div class="space-y-6">
-                        <div>
-                            <div class="flex justify-between mb-1"><span class="text-lg font-bold text-red-500">SUÇLU</span><span id="proj-vote-guilty" class="text-lg font-bold text-white">0</span></div>
-                            <div class="h-6 bg-slate-700 rounded-full overflow-hidden"><div id="proj-bar-guilty" class="h-full bg-red-600 transition-all duration-1000" style="width: 0%"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between mb-1"><span class="text-lg font-bold text-green-500">SUÇSUZ</span><span id="proj-vote-notguilty" class="text-lg font-bold text-white">0</span></div>
-                            <div class="h-6 bg-slate-700 rounded-full overflow-hidden"><div id="proj-bar-notguilty" class="h-full bg-green-600 transition-all duration-1000" style="width: 0%"></div></div>
-                        </div>
+                    
+                    <!-- GİZLİLİK PERDESİ -->
+                    <div id="vote-blind-overlay" class="absolute inset-0 z-10 bg-slate-800/95 flex flex-col items-center justify-center hidden">
+                        <i class="fa-solid fa-eye-slash text-4xl text-slate-600 mb-3"></i>
+                        <h3 class="text-xl font-bold text-white tracking-widest">OYLAR GİZLİ</h3>
+                        <p class="text-sm text-slate-400">Karar açıklanana kadar sonuçlar kapalıdır.</p>
+                    </div>
+
+                    <div id="vote-content" class="space-y-6 transition-all duration-500">
+                        <div><div class="flex justify-between mb-1"><span class="text-lg font-bold text-red-500">SUÇLU</span><span id="proj-vote-guilty" class="text-lg font-bold text-white">0</span></div><div class="h-6 bg-slate-700 rounded-full overflow-hidden"><div id="proj-bar-guilty" class="h-full bg-red-600 transition-all duration-1000" style="width: 0%"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-lg font-bold text-green-500">SUÇSUZ</span><span id="proj-vote-notguilty" class="text-lg font-bold text-white">0</span></div><div class="h-6 bg-slate-700 rounded-full overflow-hidden"><div id="proj-bar-notguilty" class="h-full bg-green-600 transition-all duration-1000" style="width: 0%"></div></div></div>
                     </div>
                     <div id="proj-final-verdict" class="mt-6 text-center text-3xl font-black tracking-widest hidden">KARAR: BEKLENİYOR</div>
                 </div>
             </div>
 
-            <!-- SAĞ PANEL -->
             <div class="col-span-5 flex flex-col gap-4">
                 <div class="bg-slate-800 rounded-2xl border border-slate-700 flex-1 flex flex-col overflow-hidden relative">
-                    <div class="bg-slate-700/50 p-2 border-b border-slate-600 flex justify-between items-center">
-                        <h2 class="text-xs font-bold text-yellow-400 uppercase pl-2">💬 Canlı Müzakere Akışı</h2>
-                        <div class="animate-pulse w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    </div>
+                    <div class="bg-slate-700/50 p-2 border-b border-slate-600 flex justify-between items-center"><h2 class="text-xs font-bold text-yellow-400 uppercase pl-2">💬 Canlı Müzakere Akışı</h2><div class="animate-pulse w-2 h-2 bg-green-500 rounded-full mr-2"></div></div>
                     <div id="proj-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto flex flex-col-reverse"></div>
                 </div>
-                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700">
-                    <div id="proj-seat-grid" class="grid grid-cols-7 gap-2"></div>
-                </div>
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700"><div id="proj-seat-grid" class="grid grid-cols-7 gap-2"></div></div>
                 <button onclick="location.reload()" class="text-[10px] text-slate-600 hover:text-slate-400 text-center">Yenile</button>
             </div>
         </div>
     </div>
 
-    <!-- HAKİM PANELİ (GÜNCELLENDİ) -->
+    <!-- HAKİM PANELİ -->
     <div id="admin-login-modal" class="hidden fixed inset-0 z-[110] bg-black/90 flex items-center justify-center p-4">
-        <form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700 relative z-[120]">
-            <h3 class="text-xl font-bold text-white mb-4">Hakim Girişi</h3>
-            <input type="password" id="admin-pass" placeholder="Şifre: 1234" class="w-full p-3 bg-slate-900 border border-slate-600 rounded mb-4 text-white">
-            <div class="flex gap-2">
-                <button type="button" onclick="document.getElementById('admin-login-modal').classList.add('hidden')" class="w-1/2 bg-slate-700 text-white py-2 rounded">İptal</button>
-                <button type="submit" class="w-1/2 bg-yellow-500 text-black font-bold py-2 rounded">Giriş</button>
-            </div>
-        </form>
+        <form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700 relative z-[120]"><h3 class="text-xl font-bold text-white mb-4">Hakim Girişi</h3><input type="password" id="admin-pass" placeholder="Şifre: 1234" class="w-full p-3 bg-slate-900 border border-slate-600 rounded mb-4 text-white"><div class="flex gap-2"><button type="button" onclick="document.getElementById('admin-login-modal').classList.add('hidden')" class="w-1/2 bg-slate-700 text-white py-2 rounded">İptal</button><button type="submit" class="w-1/2 bg-yellow-500 text-black font-bold py-2 rounded">Giriş</button></div></form>
     </div>
 
     <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-[100] p-6 overflow-y-auto">
-        <header class="flex justify-between mb-6 border-b border-slate-700 pb-4">
-            <h1 class="text-2xl font-bold text-yellow-400">HAKİM KONTROL PANELİ</h1>
-            <button onclick="location.reload()" class="bg-red-900/50 px-4 py-2 rounded text-sm hover:bg-red-900 transition">Oturumu Kapat</button>
-        </header>
+        <header class="flex justify-between mb-6 border-b border-slate-700 pb-4"><h1 class="text-2xl font-bold text-yellow-400">HAKİM KONTROL PANELİ</h1><button onclick="location.reload()" class="bg-red-900/50 px-4 py-2 rounded text-sm hover:bg-red-900 transition">Oturumu Kapat</button></header>
         
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <!-- SOL: AKIŞ KONTROLÜ -->
+            <!-- SOL -->
             <div class="space-y-6">
-                <!-- Konuşmacı Seçimi -->
                 <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Duruşma Akış Kontrolü</h3>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="setSpeaker('Davacı Avukatı')" class="p-3 bg-blue-900/50 border border-blue-700 hover:bg-blue-800 rounded-lg text-blue-100 font-bold transition text-sm">Davacı Avukatı</button>
-                        <button onclick="setSpeaker('Sanık Avukatı')" class="p-3 bg-red-900/50 border border-red-700 hover:bg-red-800 rounded-lg text-red-100 font-bold transition text-sm">Sanık Avukatı</button>
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Duruşma Akışı</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button onclick="setSpeaker('Davacı Avukatı')" class="p-3 bg-blue-900/50 border border-blue-700 hover:bg-blue-800 rounded-lg text-blue-100 font-bold text-sm">Davacı Avukatı</button>
+                        <button onclick="setSpeaker('Sanık Avukatı')" class="p-3 bg-red-900/50 border border-red-700 hover:bg-red-800 rounded-lg text-red-100 font-bold text-sm">Sanık Avukatı</button>
                         <button onclick="setSpeaker('Davacı Elif Yılmaz')" class="p-3 bg-blue-900/30 border border-blue-800 hover:bg-blue-800 rounded-lg text-blue-200 text-sm">Davacı (Elif Y.)</button>
                         <button onclick="setSpeaker('Sanık Ahmet Yılmaz')" class="p-3 bg-red-900/30 border border-red-800 hover:bg-red-800 rounded-lg text-red-200 text-sm">Sanık (Ahmet Y.)</button>
                         <button onclick="setSpeaker('Tanık')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm">Tanık</button>
                         <button onclick="setSpeaker('Hakim')" class="p-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg text-white font-bold text-sm">Hakim</button>
                     </div>
+                    <div class="border-t border-slate-600 pt-4">
+                        <h4 class="text-xs font-bold text-slate-400 mb-2">Zamanlayıcı (Dakika)</h4>
+                        <div class="flex gap-2">
+                            <button onclick="startTimer(1)" class="flex-1 bg-slate-700 hover:bg-slate-600 p-2 rounded text-xs">1 dk</button>
+                            <button onclick="startTimer(3)" class="flex-1 bg-slate-700 hover:bg-slate-600 p-2 rounded text-xs">3 dk</button>
+                            <button onclick="startTimer(5)" class="flex-1 bg-slate-700 hover:bg-slate-600 p-2 rounded text-xs">5 dk</button>
+                            <button onclick="stopTimer()" class="w-10 bg-red-600 hover:bg-red-500 p-2 rounded text-white flex items-center justify-center"><i class="fa-solid fa-stop"></i></button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Söz Hakkı Talepleri -->
                 <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-64 flex flex-col">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase">Söz Hakkı Talepleri</h3>
-                        <span class="bg-red-600 text-white text-xs px-2 py-1 rounded-full" id="req-count">0</span>
-                    </div>
-                    <div id="admin-speak-list" class="flex-1 overflow-y-auto space-y-2 pr-2">
-                        <p class="text-slate-500 text-sm text-center mt-10">Bekleyen talep yok.</p>
-                    </div>
+                    <div class="flex justify-between items-center mb-4"><h3 class="text-sm font-bold text-slate-400 uppercase">Söz Hakkı Talepleri</h3><span class="bg-red-600 text-white text-xs px-2 py-1 rounded-full" id="req-count">0</span></div>
+                    <div id="admin-speak-list" class="flex-1 overflow-y-auto space-y-2 pr-2"><p class="text-slate-500 text-sm text-center mt-10">Bekleyen talep yok.</p></div>
                 </div>
             </div>
 
-            <!-- SAĞ: DİĞER İŞLEMLER -->
+            <!-- SAĞ -->
             <div class="space-y-6">
-                <!-- Gelen Sorular -->
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-64 overflow-y-auto">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Gelen Gizli Sorular</h3>
-                    <ul id="admin-questions-list" class="space-y-2 text-sm"></ul>
+                <!-- OYLAMA KONTROLÜ (YENİ) -->
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Oylama Yönetimi</h3>
+                    <div class="flex items-center justify-between mb-4 bg-slate-900 p-3 rounded-lg">
+                        <span class="text-sm text-white font-bold">Sonuçları Ekranda Göster</span>
+                        <button onclick="toggleVoteVisibility()" id="btn-vote-toggle" class="bg-green-600 px-4 py-2 rounded-lg text-xs font-bold w-24">AÇIK</button>
+                    </div>
+                    <button onclick="resetSimulation()" class="bg-red-900/80 hover:bg-red-900 text-white px-4 py-3 rounded-lg font-bold w-full text-xs border border-red-700">⚠️ YENİ DAVA BAŞLAT</button>
                 </div>
 
-                <!-- Sıfırlama -->
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Sistem Yönetimi</h3>
-                    <button onclick="resetSimulation()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold w-full text-sm transition shadow-lg">
-                        ⚠️ YENİ DAVA BAŞLAT (HER ŞEYİ SİL)
-                    </button>
-                </div>
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-64 overflow-y-auto"><h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Gelen Gizli Sorular</h3><ul id="admin-questions-list" class="space-y-2 text-sm"></ul></div>
             </div>
         </div>
     </div>
@@ -394,11 +288,12 @@
         const SENTIMENT = 'sim_sentiment';
         const CHAT = 'sim_chat'; 
         const SPEAK_REQ = 'sim_speak_requests';
-        const NOTIFICATIONS = 'sim_notifications'; // YENİ KOLEKSİYON
+        const NOTIFICATIONS = 'sim_notifications';
         const SETTINGS = 'sim_settings';
 
         let currentUser = null;
         let initialLoadComplete = false;
+        let timerInterval = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             initSettings();
@@ -410,9 +305,8 @@
             const doc = await db.collection(SETTINGS).doc('admin_auth').get();
             if(!doc.exists) db.collection(SETTINGS).doc('admin_auth').set({password:'1234'});
             
-            // Akış ayarını oluştur (yoksa)
             const flow = await db.collection(SETTINGS).doc('flow').get();
-            if(!flow.exists) db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim'});
+            if(!flow.exists) db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true, timer_end: null});
         }
 
         function generateSeats(elementId, clickable) {
@@ -546,31 +440,20 @@
             });
         }
 
-        // --- AKILLI TAHTA BİLDİRİM VE AKIŞ SİSTEMİ ---
-        
         function playAlertSound() {
             const audio = document.getElementById('alert-sound');
             audio.currentTime = 0;
-            audio.play().catch(e => console.log("Ses çalma hatası:", e));
+            audio.play().catch(e => console.log("Ses:", e));
         }
 
         function showNotification(title, message) {
             const container = document.getElementById('notification-area');
             const notif = document.createElement('div');
             notif.className = "bg-yellow-500 text-slate-900 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 toast-enter border-4 border-white/20";
-            notif.innerHTML = `
-                <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center text-yellow-600 font-bold"><i class="fa-solid fa-gavel"></i></div>
-                <div>
-                    <h4 class="font-black text-lg leading-none uppercase">${title}</h4>
-                    <p class="text-sm font-semibold opacity-90">${message}</p>
-                </div>
-            `;
+            notif.innerHTML = `<div class="bg-white w-10 h-10 rounded-full flex items-center justify-center text-yellow-600 font-bold"><i class="fa-solid fa-gavel"></i></div><div><h4 class="font-black text-lg leading-none uppercase">${title}</h4><p class="text-sm font-semibold opacity-90">${message}</p></div>`;
             container.appendChild(notif);
-            
             setTimeout(() => {
-                notif.style.opacity = '0';
-                notif.style.transform = 'translateX(100%)';
-                notif.style.transition = 'all 0.5s ease';
+                notif.style.opacity = '0'; notif.style.transform = 'translateX(100%)'; notif.style.transition = 'all 0.5s ease';
                 setTimeout(() => notif.remove(), 500);
             }, 6000);
         }
@@ -598,34 +481,66 @@
             generateSeats('proj-seat-grid', false);
             initProjectorChat();
             
-            // 1. Konuşmacı Değişimini Dinle
+            // 1. Konuşmacı & Ayar Takibi
             db.collection(SETTINGS).doc('flow').onSnapshot(doc => {
                 if(doc.exists) {
-                    const speaker = doc.data().current_speaker;
+                    const data = doc.data();
+                    const speaker = data.current_speaker;
                     const el = document.getElementById('speaker-text');
                     const box = document.getElementById('current-speaker-box');
                     
                     if(el.textContent !== speaker) {
                         el.textContent = speaker;
-                        // Efekt
-                        box.classList.remove('speaker-change');
-                        void box.offsetWidth; // reflow trigger
-                        box.classList.add('speaker-change');
+                        box.classList.remove('speaker-change'); void box.offsetWidth; box.classList.add('speaker-change');
+                    }
+
+                    // Oylama Gizliliği
+                    const overlay = document.getElementById('vote-blind-overlay');
+                    const content = document.getElementById('vote-content');
+                    if(data.show_votes) {
+                        overlay.classList.add('hidden');
+                        content.classList.remove('blur-sm');
+                    } else {
+                        overlay.classList.remove('hidden');
+                        content.classList.add('blur-sm');
+                    }
+
+                    // Zamanlayıcı
+                    const timerBox = document.getElementById('timer-box');
+                    const timerDisp = document.getElementById('timer-display');
+                    
+                    if(data.timer_end) {
+                        timerBox.classList.remove('hidden');
+                        if(timerInterval) clearInterval(timerInterval);
+                        
+                        timerInterval = setInterval(() => {
+                            const now = new Date().getTime();
+                            const distance = data.timer_end.toDate().getTime() - now;
+                            
+                            if (distance < 0) {
+                                clearInterval(timerInterval);
+                                timerDisp.textContent = "00:00";
+                                timerDisp.classList.add('animate-pulse', 'text-red-600');
+                            } else {
+                                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                const s = Math.floor((distance % (1000 * 60)) / 1000);
+                                timerDisp.textContent = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+                            }
+                        }, 1000);
+                    } else {
+                        timerBox.classList.add('hidden');
+                        if(timerInterval) clearInterval(timerInterval);
                     }
                 }
             });
 
-            // 2. Bildirimleri Dinle (Söz Hakkı Onayları)
             setTimeout(() => { initialLoadComplete = true; }, 2000);
-            
             db.collection(NOTIFICATIONS).orderBy('timestamp', 'desc').limit(1).onSnapshot(snap => {
                 if(!initialLoadComplete) return;
                 snap.docChanges().forEach(change => {
                     if(change.type === "added") {
                         const d = change.doc.data();
-                        const now = new Date();
-                        const reqTime = d.timestamp ? d.timestamp.toDate() : new Date();
-                        if((now - reqTime) < 10000) {
+                        if((new Date() - d.timestamp.toDate()) < 10000) {
                             playAlertSound();
                             showNotification("SÖZ HAKKI VERİLDİ", d.text);
                         }
@@ -661,36 +576,23 @@
             else alert("Hata");
         }
 
-        // HAKİM PANELİ FONKSİYONLARI
         function initAdminPanel(){
-            // Sorular
             db.collection(QUESTIONS).orderBy('timestamp','desc').onSnapshot(s=>{
                 const l=document.getElementById('admin-questions-list'); l.innerHTML='';
                 s.forEach(d=>l.innerHTML+=`<li class="bg-slate-700 p-2 rounded mb-2 text-xs"><span class="text-yellow-400 font-bold">${d.data().author}:</span> ${d.data().text}</li>`);
             });
 
-            // Söz Hakkı Talepleri (YENİ)
             db.collection(SPEAK_REQ).orderBy('timestamp', 'asc').onSnapshot(snap => {
                 const list = document.getElementById('admin-speak-list');
                 const count = document.getElementById('req-count');
                 list.innerHTML = '';
                 count.textContent = snap.size;
-
-                if(snap.empty) {
-                    list.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Bekleyen talep yok.</p>';
-                    return;
-                }
-
+                if(snap.empty) { list.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Bekleyen talep yok.</p>'; return; }
                 snap.forEach(doc => {
                     const d = doc.data();
                     const div = document.createElement('div');
                     div.className = "bg-slate-700 p-3 rounded flex justify-between items-center";
-                    div.innerHTML = `
-                        <div>
-                            <div class="font-bold text-white text-sm">${d.author}</div>
-                            <div class="text-xs text-slate-400">Koltuk: ${d.seatId}</div>
-                        </div>
-                    `;
+                    div.innerHTML = `<div><div class="font-bold text-white text-sm">${d.author}</div><div class="text-xs text-slate-400">Koltuk: ${d.seatId}</div></div>`;
                     const btn = document.createElement('button');
                     btn.className = "bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs font-bold";
                     btn.textContent = "Söz Ver";
@@ -702,22 +604,32 @@
         }
 
         function setSpeaker(name) {
-            db.collection(SETTINGS).doc('flow').set({
-                current_speaker: name,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            db.collection(SETTINGS).doc('flow').update({ current_speaker: name });
+        }
+
+        function toggleVoteVisibility() {
+            db.collection(SETTINGS).doc('flow').get().then(doc => {
+                const current = doc.data().show_votes;
+                const newState = !current;
+                db.collection(SETTINGS).doc('flow').update({ show_votes: newState });
+                document.getElementById('btn-vote-toggle').textContent = newState ? "AÇIK" : "GİZLİ";
+                document.getElementById('btn-vote-toggle').className = newState ? "bg-green-600 px-4 py-2 rounded-lg text-xs font-bold w-24" : "bg-red-600 px-4 py-2 rounded-lg text-xs font-bold w-24";
             });
         }
 
+        function startTimer(minutes) {
+            const end = new Date();
+            end.setMinutes(end.getMinutes() + minutes);
+            db.collection(SETTINGS).doc('flow').update({ timer_end: firebase.firestore.Timestamp.fromDate(end) });
+        }
+
+        function stopTimer() {
+            db.collection(SETTINGS).doc('flow').update({ timer_end: null });
+        }
+
         function approveSpeech(reqId, name) {
-            // 1. Bildirim Gönder
-            db.collection(NOTIFICATIONS).add({
-                text: `${name} konuşabilir.`,
-                type: 'grant',
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            // 2. Talebi Sil
+            db.collection(NOTIFICATIONS).add({ text: `${name} konuşabilir.`, type: 'grant', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             db.collection(SPEAK_REQ).doc(reqId).delete();
-            // 3. Kürsüdeki İsmi Güncelle
             setSpeaker(name);
         }
 
@@ -725,6 +637,7 @@
             if(confirm("Sıfırla?")){
                 const bd=async(c)=>{const s=await db.collection(c).get();s.forEach(d=>d.ref.delete())};
                 await bd(SEATS); await bd(VOTES); await bd(QUESTIONS); await bd(SENTIMENT); await bd(CHAT); await bd(SPEAK_REQ); await bd(NOTIFICATIONS);
+                db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true, timer_end: null});
                 location.reload();
             }
         }
