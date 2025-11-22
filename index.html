@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v7.1</title>
+    <title>Adalet Simülasyonu v7.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -121,23 +121,29 @@
                 </div>
             </div>
 
-            <!-- TAB 2: KANITLAR (GENİŞLETİLMİŞ & RESMİ) -->
+            <!-- TAB 2: KANITLAR (GÜNCELLENDİ - Video Dosya Adı Düzeltildi) -->
             <div id="tab-evidence" class="hidden p-4 space-y-5">
                 <div class="flex items-center justify-between border-b border-slate-300 pb-2">
                     <span class="text-xs font-black text-slate-600 uppercase tracking-widest">2025/456 - Delil Klasörü</span>
                     <i class="fa-solid fa-folder-closed text-slate-400"></i>
                 </div>
                 
-                <!-- 1. DELİL: VİDEO -->
+                <!-- 1. DELİL: VİDEO (İSİM DÜZELTİLDİ: olay_yeri.mp4) -->
                 <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
                     <div class="bg-slate-800 px-3 py-2 flex justify-between items-center">
                         <h4 class="text-xs font-bold text-white"><i class="fa-solid fa-file-video text-red-400 mr-2"></i> DELİL 1: Olay Yeri Kaydı</h4>
                         <span class="text-[10px] bg-red-500/20 text-red-200 px-2 py-0.5 rounded">KRİMİNAL</span>
                     </div>
-                    <div class="aspect-video bg-black">
-                        <video controls class="w-full h-full object-contain">
-                            <source src="Olay Yeri İnceleme.mp4" type="video/mp4">
-                            Tarayıcınız videoyu desteklemiyor.
+                    <div class="aspect-video bg-black relative">
+                        <!-- playsinline: Mobilde tam ekran zorunluluğunu kaldırır -->
+                        <video controls playsinline class="w-full h-full object-contain" poster="https://placehold.co/600x400/000000/FFFFFF?text=Video+Yükleniyor...">
+                            <!-- DİKKAT: Bilgisayarındaki video adını 'olay_yeri.mp4' yapmalısın -->
+                            <source src="olay_yeri.mp4" type="video/mp4">
+                            <div class="flex flex-col items-center justify-center h-full text-white p-4 text-center">
+                                <i class="fa-solid fa-circle-exclamation text-2xl text-yellow-500 mb-2"></i>
+                                <p class="text-xs">Video yüklenemedi.</p>
+                                <p class="text-[9px] text-gray-400 mt-1">Dosya adı 'olay_yeri.mp4' olmalı.</p>
+                            </div>
                         </video>
                     </div>
                     <div class="p-3 official-doc">
