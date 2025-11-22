@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Adalet Simülasyonu v4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary-navy: #0f172a; --accent-gold: #fbbf24; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+        .nav-item.active { color: var(--accent-gold); border-top: 3px solid var(--accent-gold); }
+        .nav-item { transition: all 0.3s ease; border-top: 3px solid transparent; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
+            background: var(--accent-gold); cursor: pointer; margin-top: -10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: linear-gradient(to right, #ef4444, #e5e7eb, #22c55e);
+            border-radius: 2px;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Projector Mode Animations */
+        .bar-transition { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .pulse-glow { animation: glow 2s infinite; }
+        @keyframes glow { 0% { box-shadow: 0 0 5px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } 100% { box-shadow: 0 0 5px #fbbf24; } }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-900 text-slate-100">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+    <!-- 1. GİRİŞ EKRANI -->
+    <div id="login-screen" class="fixed inset-0 z-40 bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div class="mb-4 text-center">
+            <i class="fa-solid fa-scale-balanced text-4xl text-yellow-400 mb-2"></i>
+            <h1 class="text-2xl font-bold tracking-widest text-white">ADALET SİM.</h1>
+            <p class="text-slate-400 text-xs">Sınıf Giriş Ekranı</p>
+        </div>
+        
+        <!-- Öğrenci Giriş Alanı -->
+        <div class="w-full max-w-xs space-y-3">
+            <input type="text" id="juri-ad" placeholder="Adınız Soyadınız" class="w-full p-3 bg-slate-800 rounded-xl border border-slate-600 text-white focus:border-yellow-400 outline-none text-center text-sm">
+            <p id="login-msg" class="text-red-400 text-xs h-4 text-center"></p>
+        </div>
+
+        <!-- 35 Koltuklu Grid (Mobil İçin Kaydırılabilir Yapı) -->
+        <div class="w-full max-w-md mt-4 mb-20 flex-1 overflow-y-auto no-scrollbar">
+            <p class="text-center text-xs text-slate-500 mb-2">Lütfen Koltuğunuzu Seçin 👇</p>
+            <div id="koltuk-grid" class="grid grid-cols-5 gap-2 pb-10">
+                <!-- Koltuklar JS ile gelecek -->
+            </div>
+        </div>
+        
+        <!-- Alt Butonlar -->
+        <div class="absolute bottom-6 flex gap-4 w-full justify-center px-4">
+            <button onclick="openAdminModal()" class="text-slate-500 hover:text-white transition text-xs border border-slate-700 px-3 py-2 rounded bg-slate-800">
+                <i class="fa-solid fa-gavel"></i> Hakim Girişi
+            </button>
+            <button onclick="openProjectorMode()" class="text-yellow-400 hover:text-yellow-300 transition text-xs border border-yellow-600 px-3 py-2 rounded bg-yellow-900/20 font-bold pulse-glow">
+                <i class="fa-solid fa-tv"></i> Akıllı Tahta Ekranı
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. JÜRİ (ÖĞRENCİ) ARAYÜZÜ -->
+    <div id="app-interface" class="hidden flex-col h-full w-full bg-slate-100 text-slate-800">
+        <header class="bg-slate-900 text-white p-3 flex justify-between items-center shadow-lg z-10">
+            <div>
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Dava: 2025/456</span>
+                <span id="header-user-name" class="font-bold text-yellow-400 text-sm">Jüri Üyesi</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                <span class="text-xs font-mono text-slate-300">CANLI</span>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto no-scrollbar relative">
+            <!-- TAB 1: CANLI -->
+            <div id="tab-live" class="p-5 space-y-6">
+                <div class="bg-white p-5 rounded-2xl shadow-lg border-l-4 border-blue-500">
+                    <h3 class="font-bold text-slate-700 mb-2 text-sm"><i class="fa-solid fa-scale-unbalanced mr-2"></i>Vicdani Kanaat İbresi</h3>
+                    <p class="text-xs text-slate-500 mb-6">Tanıkları dinlerken kime hak verdiğinizi anlık olarak değiştirin.</p>
+                    <div class="relative pt-2 pb-2">
+                        <input type="range" id="sentiment-slider" min="0" max="100" value="50" step="10">
+                        <div class="flex justify-between text-[10px] font-bold mt-2 uppercase tracking-wider">
+                            <span class="text-red-500">Davacı</span>
+                            <span class="text-slate-400">Nötr</span>
+                            <span class="text-green-600">Sanık</span>
+                        </div>
+                    </div>
+                    <p id="sentiment-status" class="text-center text-[10px] font-mono text-slate-400 mt-2 h-4"></p>
+                </div>
+            </div>
+
+            <!-- TAB 2: KANITLAR -->
+            <div id="tab-evidence" class="hidden p-4 grid grid-cols-2 gap-4">
+                <div class="bg-white rounded-xl overflow-hidden shadow-md cursor-pointer" onclick="openImage('https://placehold.co/800x600/e2e8f0/1e293b?text=Olay+Yeri+Fotoğrafı')">
+                    <img src="https://placehold.co/800x600/e2e8f0/1e293b?text=Olay+Yeri+Fotoğrafı" class="w-full h-24 object-cover">
+                    <div class="p-2"><p class="text-xs font-bold">Delil A: Olay Yeri</p></div>
+                </div>
+                <div class="bg-white rounded-xl overflow-hidden shadow-md cursor-pointer" onclick="openImage('https://placehold.co/800x600/e2e8f0/1e293b?text=Polis+Raporu')">
+                    <img src="https://placehold.co/800x600/e2e8f0/1e293b?text=Polis+Raporu" class="w-full h-24 object-cover">
+                    <div class="p-2"><p class="text-xs font-bold">Delil B: Rapor</p></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: SORU -->
+            <div id="tab-comm" class="hidden p-5 space-y-4">
+                <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                    <h3 class="font-bold text-indigo-900 text-sm mb-2">Hakime Soru İlet</h3>
+                    <textarea id="question-input" rows="3" placeholder="Aklınıza takılan..." class="w-full p-3 rounded-lg text-sm border border-indigo-200"></textarea>
+                    <button onclick="sendQuestion()" class="w-full mt-2 bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold">GÖNDER</button>
+                </div>
+            </div>
+
+            <!-- TAB 4: OY -->
+            <div id="tab-vote" class="hidden p-6 flex flex-col h-full justify-center text-center space-y-6">
+                <h2 class="text-xl font-bold text-slate-800">Karar Vakti</h2>
+                <div id="vote-buttons-area" class="space-y-3 w-full">
+                    <button onclick="submitVote('SUÇLU')" class="w-full py-4 bg-red-500 text-white rounded-xl shadow-lg font-bold text-lg">SUÇLU</button>
+                    <button onclick="submitVote('SUÇSUZ')" class="w-full py-4 bg-green-500 text-white rounded-xl shadow-lg font-bold text-lg">SUÇSUZ</button>
+                </div>
+                <p id="vote-status" class="font-bold text-blue-600 text-sm"></p>
+            </div>
+        </main>
+
+        <nav class="bg-white border-t border-slate-200 flex justify-around pb-safe pt-2 h-16 shadow-lg z-20">
+            <button onclick="switchTab('tab-live', this)" class="nav-item active flex flex-col items-center w-1/4 text-slate-400"><i class="fa-solid fa-tower-broadcast text-lg mb-1"></i><span class="text-[10px]">Canlı</span></button>
+            <button onclick="switchTab('tab-evidence', this)" class="nav-item flex flex-col items-center w-1/4 text-slate-400"><i class="fa-solid fa-folder-open text-lg mb-1"></i><span class="text-[10px]">Kanıt</span></button>
+            <button onclick="switchTab('tab-comm', this)" class="nav-item flex flex-col items-center w-1/4 text-slate-400"><i class="fa-solid fa-comment-dots text-lg mb-1"></i><span class="text-[10px]">Soru</span></button>
+            <button onclick="switchTab('tab-vote', this)" class="nav-item flex flex-col items-center w-1/4 text-slate-400"><i class="fa-solid fa-check-to-slot text-lg mb-1"></i><span class="text-[10px]">Karar</span></button>
+        </nav>
+    </div>
+
+    <!-- 3. AKILLI TAHTA MODU (Projector Panel) -->
+    <div id="projector-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-50 overflow-hidden flex flex-col p-8">
+        <!-- Header -->
+        <header class="flex justify-between items-end border-b border-slate-700 pb-4 mb-6">
+            <div>
+                <h1 class="text-4xl font-bold text-yellow-400 tracking-wider">MAHKEME CANLI İZLEME</h1>
+                <p class="text-slate-400 mt-1">Dava No: 2025/456 | Canlı Sınıf Verisi</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-slate-400">Bağlı Jüri Sayısı</div>
+                <div id="proj-jury-count" class="text-3xl font-bold text-white">0 / 35</div>
+            </div>
+        </header>
+
+        <div class="flex-1 grid grid-cols-12 gap-8">
+            
+            <!-- SOL KOLON: VİCDAN İBRESİ (BÜYÜK) -->
+            <div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
+                <!-- Sentiment Card -->
+                <div class="bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-2xl flex-1 flex flex-col justify-center">
+                    <h2 class="text-xl font-bold text-slate-400 uppercase mb-8 text-center">Sınıfın Vicdani Kanaati</h2>
+                    
+                    <!-- Gauge Container -->
+                    <div class="relative w-full h-12 bg-slate-700 rounded-full mb-4 shadow-inner">
+                        <!-- Gradient Background -->
+                        <div class="absolute inset-0 rounded-full bg-gradient-to-r from-red-600 via-slate-600 to-green-600 opacity-50"></div>
+                        <!-- Marker -->
+                        <div id="proj-sentiment-marker" class="absolute top-[-10px] w-2 h-16 bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all duration-700 ease-out" style="left: 50%; transform: translateX(-50%);">
+                            <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-3 py-1 rounded font-bold text-lg shadow-lg" id="proj-sentiment-val">50%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between text-lg font-bold mt-4 px-2">
+                        <span class="text-red-500">DAVACI HAKLI</span>
+                        <span class="text-slate-400">TARAFSIZ</span>
+                        <span class="text-green-500">SANIK HAKLI</span>
+                    </div>
+                </div>
+
+                <!-- Oylama Barları (BÜYÜK) -->
+                <div class="bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-2xl">
+                    <h2 class="text-xl font-bold text-slate-400 uppercase mb-6">Anlık Oylama Durumu</h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Suçlu Barı -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-2xl font-bold text-red-500">SUÇLU</span>
+                                <span id="proj-vote-guilty" class="text-2xl font-bold text-white">0</span>
+                            </div>
+                            <div class="h-8 bg-slate-700 rounded-full overflow-hidden">
+                                <div id="proj-bar-guilty" class="h-full bg-red-600 bar-transition shadow-[0_0_15px_rgba(220,38,38,0.5)]" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Suçsuz Barı -->
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-2xl font-bold text-green-500">SUÇSUZ</span>
+                                <span id="proj-vote-notguilty" class="text-2xl font-bold text-white">0</span>
+                            </div>
+                            <div class="h-8 bg-slate-700 rounded-full overflow-hidden">
+                                <div id="proj-bar-notguilty" class="h-full bg-green-600 bar-transition shadow-[0_0_15px_rgba(22,163,74,0.5)]" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="proj-final-verdict" class="mt-8 text-center text-4xl font-black tracking-widest hidden">
+                        KARAR: <span class="text-yellow-400">BEKLENİYOR</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAĞ KOLON: OTURMA PLANI (KÜÇÜK NOKTALAR) -->
+            <div class="col-span-12 lg:col-span-4 bg-slate-800 rounded-2xl p-6 border border-slate-700 flex flex-col">
+                <h2 class="text-sm font-bold text-slate-400 uppercase mb-4">Jüri Yoklaması</h2>
+                <div id="proj-seat-grid" class="grid grid-cols-5 gap-3 content-start">
+                    <!-- JS ile dolacak -->
+                </div>
+                <div class="mt-auto pt-4 text-center">
+                     <button onclick="location.reload()" class="text-xs text-slate-600 hover:text-slate-400">Ekranı Kapat / Yenile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. HAKİM LOGIN & PANEL (Gizli) -->
+    <div id="admin-login-modal" class="hidden fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4">
+        <form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700">
+            <h3 class="text-xl font-bold text-white mb-4">Hakim Girişi</h3>
+            <input type="password" id="admin-pass" placeholder="Şifre (Varsayılan: 1234)" class="w-full p-3 bg-slate-900 border border-slate-600 rounded mb-4 text-white">
+            <div class="flex gap-2">
+                <button type="button" onclick="document.getElementById('admin-login-modal').classList.add('hidden')" class="w-1/2 bg-slate-700 text-white py-2 rounded">İptal</button>
+                <button type="submit" class="w-1/2 bg-yellow-500 text-black font-bold py-2 rounded">Giriş</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-[60] p-8 overflow-y-auto">
+        <header class="flex justify-between mb-8">
+            <h1 class="text-2xl font-bold text-yellow-400">HAKİM KONTROL PANELİ</h1>
+            <button onclick="location.reload()" class="bg-red-900/50 px-4 py-2 rounded text-red-200">Çıkış</button>
+        </header>
+        
+        <div class="bg-slate-800 p-6 rounded mb-6">
+            <h3 class="font-bold mb-4">Sıfırlama İşlemleri</h3>
+            <button onclick="resetSimulation()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded font-bold w-full">
+                ⚠️ YENİ DAVA BAŞLAT (HER ŞEYİ SİL)
+            </button>
+        </div>
+        
+        <div class="bg-slate-800 p-6 rounded h-64 overflow-y-auto">
+            <h3 class="font-bold mb-4">Gelen Sorular</h3>
+            <ul id="admin-questions-list" class="space-y-2 text-sm"></ul>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="hidden fixed inset-0 z-[70] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
+        <img id="modal-img" src="" class="max-h-full max-w-full rounded">
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4",
+            authDomain: "mahkeme-sim.firebaseapp.com",
+            projectId: "mahkeme-sim",
+            storageBucket: "mahkeme-sim.firebasestorage.app",
+            messagingSenderId: "573778878408",
+            appId: "1:573778878408:web:67ab4ac006df3325ec6afd",
+            measurementId: "G-8Z9QFL662E"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // KOLTUK SAYISI 35 YAPILDI
+        const JURY_SIZE = 35; 
+        
+        const SEATS = 'sim_seats';
+        const VOTES = 'sim_votes';
+        const QUESTIONS = 'sim_questions';
+        const SENTIMENT = 'sim_sentiment';
+        const SETTINGS = 'sim_settings';
+
+        let currentUser = null;
+
+        // --- BAŞLANGIÇ ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initSettings();
+            generateSeats('koltuk-grid', true); // Mobil grid
+            checkSession();
+        });
+
+        async function initSettings() {
+            const doc = await db.collection(SETTINGS).doc('admin_auth').get();
+            if(!doc.exists) db.collection(SETTINGS).doc('admin_auth').set({password:'1234'});
+        }
+
+        // --- KOLTUK & GİRİŞ ---
+        function generateSeats(elementId, clickable) {
+            const grid = document.getElementById(elementId);
+            grid.innerHTML = '';
+            
+            // Veritabanını dinle
+            db.collection(SEATS).onSnapshot(snap => {
+                const occupied = {};
+                snap.forEach(doc => occupied[doc.id] = doc.data().name);
+                
+                grid.innerHTML = '';
+                for(let i=1; i<=JURY_SIZE; i++) {
+                    const div = document.createElement('div');
+                    const isTaken = occupied[i];
+                    
+                    if(clickable) {
+                        // MOBİL GÖRÜNÜM (BUTONLAR)
+                        const btn = document.createElement('button');
+                        btn.className = `w-full aspect-square rounded-lg font-bold text-xs transition-all flex items-center justify-center ${isTaken 
+                            ? 'bg-slate-800 text-slate-600 border border-slate-700 cursor-not-allowed' 
+                            : 'bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 text-slate-300 border border-slate-600'}`;
+                        btn.textContent = i;
+                        if(!isTaken) btn.onclick = () => selectSeat(i);
+                        grid.appendChild(btn);
+                    } else {
+                        // AKILLI TAHTA GÖRÜNÜMÜ (NOKTALAR)
+                        div.className = `w-full aspect-square rounded-full border-2 transition-all duration-500 ${isTaken 
+                            ? 'bg-green-500 border-green-400 shadow-[0_0_10px_rgba(34,197,94,0.6)]' 
+                            : 'bg-slate-700 border-slate-600 opacity-30'}`;
+                        // Tooltip (isim göstermek için)
+                        if(isTaken) div.title = occupied[i];
+                        grid.appendChild(div);
+                    }
+                }
+                
+                // Tahta modunda sayı güncelle
+                if(document.getElementById('proj-jury-count')) {
+                    document.getElementById('proj-jury-count').textContent = `${Object.keys(occupied).length} / ${JURY_SIZE}`;
+                }
+            });
+        }
+
+        async function selectSeat(id) {
+            const name = document.getElementById('juri-ad').value.trim();
+            if(name.length < 3) return alert("Lütfen isminizi giriniz.");
+            
+            await db.collection(SEATS).doc(String(id)).set({
+                name: name, seatId: id, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            localStorage.setItem('seatId', id);
+            localStorage.setItem('name', name);
+            enterApp(name, id);
+        }
+
+        function checkSession() {
+            const s = localStorage.getItem('seatId');
+            const n = localStorage.getItem('name');
+            if(s && n) enterApp(n, s);
+        }
+
+        function enterApp(name, id) {
+            currentUser = { name, seatId: id };
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-interface').classList.remove('hidden');
+            document.getElementById('app-interface').classList.add('flex');
+            document.getElementById('header-user-name').textContent = `${name} (Koltuk ${id})`;
+            setupUserListeners();
+        }
+
+        // --- MOBİL KULLANICI İŞLEVLERİ ---
+        function switchTab(id, btn) {
+            ['tab-live', 'tab-evidence', 'tab-comm', 'tab-vote'].forEach(t => document.getElementById(t).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function setupUserListeners() {
+            // Sentiment
+            let timeout;
+            document.getElementById('sentiment-slider').addEventListener('input', (e) => {
+                document.getElementById('sentiment-status').textContent = "İletiliyor...";
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    db.collection(SENTIMENT).doc(String(currentUser.seatId)).set({
+                        val: parseInt(e.target.value), name: currentUser.name
+                    });
+                    document.getElementById('sentiment-status').textContent = "";
+                }, 300);
+            });
+
+            // Vote Lock
+            db.collection(VOTES).doc(String(currentUser.seatId)).onSnapshot(doc => {
+                if(doc.exists) {
+                    document.getElementById('vote-buttons-area').innerHTML = `<div class="p-4 bg-slate-200 rounded text-slate-500 font-bold">OYUNUZ: ${doc.data().vote}</div>`;
+                }
+            });
+        }
+
+        function sendQuestion() {
+            const txt = document.getElementById('question-input').value.trim();
+            if(!txt) return;
+            db.collection(QUESTIONS).add({
+                text: txt, author: currentUser.name, seat: currentUser.seatId,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert("Soru gönderildi.");
+            document.getElementById('question-input').value = '';
+        }
+
+        function submitVote(vote) {
+            if(confirm("Kararınız kesin mi?")) {
+                db.collection(VOTES).doc(String(currentUser.seatId)).set({
+                    vote: vote, name: currentUser.name, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        }
+        
+        function openImage(src) {
+            document.getElementById('modal-img').src = src;
+            document.getElementById('image-modal').classList.remove('hidden');
+        }
+
+        // --- AKILLI TAHTA MODU (PROJECTOR) ---
+        function openProjectorMode() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('projector-panel').classList.remove('hidden');
+            initProjectorData();
+        }
+
+        function initProjectorData() {
+            // 1. Koltukları (Nokta olarak) oluştur
+            generateSeats('proj-seat-grid', false);
+
+            // 2. Sentiment Dinle
+            db.collection(SENTIMENT).onSnapshot(snap => {
+                let total = 0, count = 0;
+                snap.forEach(doc => { total += doc.data().val; count++; });
+                
+                if(count > 0) {
+                    const avg = total / count;
+                    const marker = document.getElementById('proj-sentiment-marker');
+                    marker.style.left = avg + "%";
+                    document.getElementById('proj-sentiment-val').textContent = avg.toFixed(0) + "%";
+                    
+                    // Renk değişimi
+                    if(avg < 40) marker.style.backgroundColor = "#ef4444"; // Kırmızı
+                    else if(avg > 60) marker.style.backgroundColor = "#22c55e"; // Yeşil
+                    else marker.style.backgroundColor = "#ffffff"; // Beyaz
+                }
+            });
+
+            // 3. Oyları Dinle
+            db.collection(VOTES).onSnapshot(snap => {
+                let g = 0, ng = 0;
+                snap.forEach(doc => doc.data().vote === 'SUÇLU' ? g++ : ng++);
+                
+                document.getElementById('proj-vote-guilty').textContent = g;
+                document.getElementById('proj-vote-notguilty').textContent = ng;
+
+                const total = g + ng;
+                if(total > 0) {
+                    document.getElementById('proj-bar-guilty').style.width = (g/total*100) + "%";
+                    document.getElementById('proj-bar-notguilty').style.width = (ng/total*100) + "%";
+                }
+                
+                // Nihai Karar Gösterimi (Salt çoğunluk > yarısı)
+                const threshold = Math.floor(JURY_SIZE / 2) + 1;
+                const verdictDiv = document.getElementById('proj-final-verdict');
+                
+                if(g >= threshold) {
+                    verdictDiv.innerHTML = "KARAR: <span class='text-red-500'>SUÇLU</span>";
+                    verdictDiv.classList.remove('hidden');
+                } else if (ng >= threshold) {
+                    verdictDiv.innerHTML = "KARAR: <span class='text-green-500'>SUÇSUZ</span>";
+                    verdictDiv.classList.remove('hidden');
+                }
+            });
+        }
+
+        // --- HAKİM (ADMIN) MODU ---
+        function openAdminModal() { document.getElementById('admin-login-modal').classList.remove('hidden'); }
+        
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const pass = document.getElementById('admin-pass').value;
+            const doc = await db.collection(SETTINGS).doc('admin_auth').get();
+            if(doc.data().password === pass) {
+                document.getElementById('admin-login-modal').classList.add('hidden');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                initAdminPanel();
+            } else {
+                alert("Hatalı şifre");
+            }
+        }
+
+        function initAdminPanel() {
+            // Soruları Dinle
+            db.collection(QUESTIONS).orderBy('timestamp', 'desc').onSnapshot(snap => {
+                const list = document.getElementById('admin-questions-list');
+                list.innerHTML = '';
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    list.innerHTML += `<li class="bg-slate-700 p-2 rounded mb-2"><span class="text-yellow-400 font-bold">${d.author}:</span> ${d.text}</li>`;
+                });
+            });
+        }
+
+        async function resetSimulation() {
+            if(confirm("TÜM VERİLERİ SİLİP YENİ DAVA BAŞLATMAK İSTİYOR MUSUNUZ?")) {
+                 const batchDelete = async (col) => {
+                    const snap = await db.collection(col).get();
+                    snap.forEach(doc => doc.ref.delete());
+                };
+                await batchDelete(SEATS);
+                await batchDelete(VOTES);
+                await batchDelete(QUESTIONS);
+                await batchDelete(SENTIMENT);
+                alert("Sıfırlandı. Sayfa yenileniyor.");
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
