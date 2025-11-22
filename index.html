@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v4.0</title>
+    <title>Adalet Simülasyonu v4.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root { --primary-navy: #0f172a; --accent-gold: #fbbf24; }
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+        /* Mobil tarayıcılar için dinamik yükseklik (dvh) */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f1f5f9; 
+            -webkit-tap-highlight-color: transparent;
+            height: 100dvh; /* Modern mobil tarayıcı fix'i */
+            height: -webkit-fill-available; /* iOS fix'i */
+        }
         .nav-item.active { color: var(--accent-gold); border-top: 3px solid var(--accent-gold); }
         .nav-item { transition: all 0.3s ease; border-top: 3px solid transparent; }
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
@@ -33,14 +40,14 @@
         @keyframes glow { 0% { box-shadow: 0 0 5px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } 100% { box-shadow: 0 0 5px #fbbf24; } }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden bg-slate-900 text-slate-100">
+<body class="flex flex-col overflow-hidden bg-slate-900 text-slate-100 h-full">
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 
     <!-- 1. GİRİŞ EKRANI -->
-    <div id="login-screen" class="fixed inset-0 z-40 bg-slate-900 flex flex-col items-center justify-center p-4">
+    <div id="login-screen" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center p-4 h-full w-full">
         <div class="mb-4 text-center">
             <i class="fa-solid fa-scale-balanced text-4xl text-yellow-400 mb-2"></i>
             <h1 class="text-2xl font-bold tracking-widest text-white">ADALET SİM.</h1>
@@ -48,21 +55,21 @@
         </div>
         
         <!-- Öğrenci Giriş Alanı -->
-        <div class="w-full max-w-xs space-y-3">
+        <div class="w-full max-w-xs space-y-3 relative z-10">
             <input type="text" id="juri-ad" placeholder="Adınız Soyadınız" class="w-full p-3 bg-slate-800 rounded-xl border border-slate-600 text-white focus:border-yellow-400 outline-none text-center text-sm">
             <p id="login-msg" class="text-red-400 text-xs h-4 text-center"></p>
         </div>
 
         <!-- 35 Koltuklu Grid (Mobil İçin Kaydırılabilir Yapı) -->
-        <div class="w-full max-w-md mt-4 mb-20 flex-1 overflow-y-auto no-scrollbar">
+        <div class="w-full max-w-md mt-4 mb-20 flex-1 overflow-y-auto no-scrollbar relative z-10">
             <p class="text-center text-xs text-slate-500 mb-2">Lütfen Koltuğunuzu Seçin 👇</p>
-            <div id="koltuk-grid" class="grid grid-cols-5 gap-2 pb-10">
+            <div id="koltuk-grid" class="grid grid-cols-5 gap-2 pb-24">
                 <!-- Koltuklar JS ile gelecek -->
             </div>
         </div>
         
         <!-- Alt Butonlar -->
-        <div class="absolute bottom-6 flex gap-4 w-full justify-center px-4">
+        <div class="fixed bottom-6 left-0 right-0 flex gap-4 w-full justify-center px-4 z-20">
             <button onclick="openAdminModal()" class="text-slate-500 hover:text-white transition text-xs border border-slate-700 px-3 py-2 rounded bg-slate-800">
                 <i class="fa-solid fa-gavel"></i> Hakim Girişi
             </button>
@@ -73,8 +80,9 @@
     </div>
 
     <!-- 2. JÜRİ (ÖĞRENCİ) ARAYÜZÜ -->
-    <div id="app-interface" class="hidden flex-col h-full w-full bg-slate-100 text-slate-800">
-        <header class="bg-slate-900 text-white p-3 flex justify-between items-center shadow-lg z-10">
+    <div id="app-interface" class="hidden flex-col h-full w-full bg-slate-100 text-slate-800 absolute inset-0">
+        <!-- Header -->
+        <header class="bg-slate-900 text-white p-3 flex justify-between items-center shadow-lg z-30 flex-shrink-0 h-16">
             <div>
                 <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Dava: 2025/456</span>
                 <span id="header-user-name" class="font-bold text-yellow-400 text-sm">Jüri Üyesi</span>
@@ -85,7 +93,10 @@
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto no-scrollbar relative">
+        <!-- Scrollable Content Area -->
+        <!-- pb-24 class'ı eklendi, böylece içerik alt menünün altında kalmaz -->
+        <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-24">
+            
             <!-- TAB 1: CANLI -->
             <div id="tab-live" class="p-5 space-y-6">
                 <div class="bg-white p-5 rounded-2xl shadow-lg border-l-4 border-blue-500">
@@ -135,7 +146,8 @@
             </div>
         </main>
 
-        <nav class="bg-white border-t border-slate-200 flex justify-around pb-safe pt-2 h-16 shadow-lg z-20">
+        <!-- Fixed Bottom Navigation -->
+        <nav class="bg-white border-t border-slate-200 flex justify-around pb-4 pt-2 h-20 shadow-[0_-5px_10px_rgba(0,0,0,0.05)] z-40 fixed bottom-0 left-0 right-0 w-full">
             <button onclick="switchTab('tab-live', this)" class="nav-item active flex flex-col items-center w-1/4 text-slate-400"><i class="fa-solid fa-tower-broadcast text-lg mb-1"></i><span class="text-[10px]">Canlı</span></button>
             <button onclick="switchTab('tab-evidence', this)" class="nav-item flex flex-col items-center w-1/4 text-slate-400"><i class="fa-solid fa-folder-open text-lg mb-1"></i><span class="text-[10px]">Kanıt</span></button>
             <button onclick="switchTab('tab-comm', this)" class="nav-item flex flex-col items-center w-1/4 text-slate-400"><i class="fa-solid fa-comment-dots text-lg mb-1"></i><span class="text-[10px]">Soru</span></button>
@@ -230,8 +242,8 @@
     </div>
 
     <!-- 4. HAKİM LOGIN & PANEL (Gizli) -->
-    <div id="admin-login-modal" class="hidden fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4">
-        <form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700">
+    <div id="admin-login-modal" class="hidden fixed inset-0 z-[110] bg-black/90 flex items-center justify-center p-4">
+        <form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700 relative z-[120]">
             <h3 class="text-xl font-bold text-white mb-4">Hakim Girişi</h3>
             <input type="password" id="admin-pass" placeholder="Şifre (Varsayılan: 1234)" class="w-full p-3 bg-slate-900 border border-slate-600 rounded mb-4 text-white">
             <div class="flex gap-2">
@@ -241,7 +253,7 @@
         </form>
     </div>
 
-    <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-[60] p-8 overflow-y-auto">
+    <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-[100] p-8 overflow-y-auto">
         <header class="flex justify-between mb-8">
             <h1 class="text-2xl font-bold text-yellow-400">HAKİM KONTROL PANELİ</h1>
             <button onclick="location.reload()" class="bg-red-900/50 px-4 py-2 rounded text-red-200">Çıkış</button>
@@ -261,7 +273,7 @@
     </div>
 
     <!-- Image Modal -->
-    <div id="image-modal" class="hidden fixed inset-0 z-[70] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
+    <div id="image-modal" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')">
         <img id="modal-img" src="" class="max-h-full max-w-full rounded">
     </div>
 
