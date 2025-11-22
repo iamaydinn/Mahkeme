@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v8.1</title>
+    <title>Adalet Simülasyonu v9.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -34,8 +34,6 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .pulse-glow { animation: glow 2s infinite; }
         @keyframes glow { 0% { box-shadow: 0 0 5px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } 100% { box-shadow: 0 0 5px #fbbf24; } }
-        .chat-bubble-enter { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; transform: scale(0.8) translateY(20px); }
-        @keyframes popIn { to { opacity: 1; transform: scale(1) translateY(0); } }
         
         .official-doc {
             background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
@@ -51,6 +49,10 @@
         /* Bildirim Animasyonu */
         .toast-enter { animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* Konuşmacı Barı Animasyonu */
+        .speaker-change { animation: flashBg 1s ease; }
+        @keyframes flashBg { 0% { background-color: #fbbf24; } 100% { background-color: #1e293b; } }
     </style>
 </head>
 <body class="flex flex-col overflow-hidden bg-slate-900 text-slate-100 h-full">
@@ -103,14 +105,14 @@
             </div>
         </header>
 
-        <!-- SÖZ HAKKI BUTONU (SOL ALT KÖŞEYE ALINDI) -->
-        <button onclick="requestSpeech()" class="fixed bottom-24 left-4 z-50 bg-yellow-500 hover:bg-yellow-400 text-slate-900 p-4 rounded-full shadow-2xl transition-transform active:scale-90 border-4 border-white/20 flex flex-col items-center justify-center w-16 h-16">
-            <i class="fa-solid fa-hand text-xl"></i>
+        <!-- SÖZ HAKKI BUTONU -->
+        <button onclick="requestSpeech()" class="fixed bottom-24 left-4 z-50 bg-yellow-500 hover:bg-yellow-400 text-slate-900 p-4 rounded-full shadow-2xl transition-transform active:scale-90 border-4 border-white/20 flex flex-col items-center justify-center w-16 h-16 group">
+            <i class="fa-solid fa-hand text-xl group-hover:-translate-y-1 transition"></i>
             <span class="text-[8px] font-bold uppercase mt-1">Söz İste</span>
         </button>
 
         <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-20 bg-slate-200">
-            <!-- TAB 1: CANLI (İbre) -->
+            <!-- TAB 1: CANLI -->
             <div id="tab-live" class="p-4 space-y-4 h-full flex flex-col">
                 <div class="bg-white p-4 rounded-2xl shadow-lg border-l-4 border-blue-500">
                     <h3 class="font-bold text-slate-700 mb-2 text-sm">Vicdani Kanaat İbresi</h3>
@@ -234,16 +236,22 @@
     <div id="projector-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-50 overflow-hidden flex flex-col p-6 relative">
         
         <!-- BİLDİRİM ALANI (SAĞ ÜST) -->
-        <div id="notification-area" class="absolute top-20 right-6 w-80 z-[100] space-y-2 pointer-events-none"></div>
+        <div id="notification-area" class="absolute top-24 right-6 w-96 z-[100] space-y-3 pointer-events-none"></div>
 
-        <header class="flex justify-between items-end border-b border-slate-700 pb-2 mb-4">
+        <header class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6">
             <div>
-                <h1 class="text-3xl font-bold text-yellow-400 tracking-wider">MAHKEME CANLI İZLEME</h1>
-                <p class="text-slate-400 text-sm mt-1">Atatürk Üni. | Dava: 2025/456</p>
+                <!-- CANLI KONUŞMACI GÖSTERGESİ -->
+                <div id="current-speaker-box" class="bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-yellow-400 shadow-lg transition-all duration-500">
+                    <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">KÜRSÜDEKİ KONUŞMACI</span>
+                    <h2 id="current-speaker-name" class="text-2xl font-bold text-white flex items-center gap-3">
+                        <i class="fa-solid fa-microphone-lines text-yellow-400 animate-pulse"></i>
+                        <span id="speaker-text">Hakim</span>
+                    </h2>
+                </div>
             </div>
             <div class="text-right">
-                <div class="text-xs text-slate-400">Jüri</div>
-                <div id="proj-jury-count" class="text-2xl font-bold text-white">0/35</div>
+                <h1 class="text-3xl font-bold text-yellow-400 tracking-wider">ADALET SİM.</h1>
+                <div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div>
             </div>
         </header>
 
@@ -298,7 +306,7 @@
         </div>
     </div>
 
-    <!-- GİZLİ MODALLAR -->
+    <!-- HAKİM PANELİ (GÜNCELLENDİ) -->
     <div id="admin-login-modal" class="hidden fixed inset-0 z-[110] bg-black/90 flex items-center justify-center p-4">
         <form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700 relative z-[120]">
             <h3 class="text-xl font-bold text-white mb-4">Hakim Girişi</h3>
@@ -310,10 +318,58 @@
         </form>
     </div>
 
-    <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-[100] p-8 overflow-y-auto">
-        <header class="flex justify-between mb-8"><h1 class="text-2xl font-bold text-yellow-400">HAKİM KONTROL</h1><button onclick="location.reload()" class="bg-red-900/50 px-4 py-2 rounded">Çıkış</button></header>
-        <div class="bg-slate-800 p-6 rounded mb-6"><h3 class="font-bold mb-4">Sıfırlama</h3><button onclick="resetSimulation()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded font-bold w-full">⚠️ YENİ DAVA BAŞLAT</button></div>
-        <div class="bg-slate-800 p-6 rounded h-64 overflow-y-auto"><h3 class="font-bold mb-4">Gelen Sorular</h3><ul id="admin-questions-list" class="space-y-2 text-sm"></ul></div>
+    <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-[100] p-6 overflow-y-auto">
+        <header class="flex justify-between mb-6 border-b border-slate-700 pb-4">
+            <h1 class="text-2xl font-bold text-yellow-400">HAKİM KONTROL PANELİ</h1>
+            <button onclick="location.reload()" class="bg-red-900/50 px-4 py-2 rounded text-sm hover:bg-red-900 transition">Oturumu Kapat</button>
+        </header>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- SOL: AKIŞ KONTROLÜ -->
+            <div class="space-y-6">
+                <!-- Konuşmacı Seçimi -->
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Duruşma Akış Kontrolü</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setSpeaker('Davacı Avukatı')" class="p-3 bg-blue-900/50 border border-blue-700 hover:bg-blue-800 rounded-lg text-blue-100 font-bold transition text-sm">Davacı Avukatı</button>
+                        <button onclick="setSpeaker('Sanık Avukatı')" class="p-3 bg-red-900/50 border border-red-700 hover:bg-red-800 rounded-lg text-red-100 font-bold transition text-sm">Sanık Avukatı</button>
+                        <button onclick="setSpeaker('Davacı Elif Yılmaz')" class="p-3 bg-blue-900/30 border border-blue-800 hover:bg-blue-800 rounded-lg text-blue-200 text-sm">Davacı (Elif Y.)</button>
+                        <button onclick="setSpeaker('Sanık Ahmet Yılmaz')" class="p-3 bg-red-900/30 border border-red-800 hover:bg-red-800 rounded-lg text-red-200 text-sm">Sanık (Ahmet Y.)</button>
+                        <button onclick="setSpeaker('Tanık')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm">Tanık</button>
+                        <button onclick="setSpeaker('Hakim')" class="p-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg text-white font-bold text-sm">Hakim</button>
+                    </div>
+                </div>
+
+                <!-- Söz Hakkı Talepleri -->
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-64 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase">Söz Hakkı Talepleri</h3>
+                        <span class="bg-red-600 text-white text-xs px-2 py-1 rounded-full" id="req-count">0</span>
+                    </div>
+                    <div id="admin-speak-list" class="flex-1 overflow-y-auto space-y-2 pr-2">
+                        <p class="text-slate-500 text-sm text-center mt-10">Bekleyen talep yok.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAĞ: DİĞER İŞLEMLER -->
+            <div class="space-y-6">
+                <!-- Gelen Sorular -->
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-64 overflow-y-auto">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Gelen Gizli Sorular</h3>
+                    <ul id="admin-questions-list" class="space-y-2 text-sm"></ul>
+                </div>
+
+                <!-- Sıfırlama -->
+                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Sistem Yönetimi</h3>
+                    <button onclick="resetSimulation()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold w-full text-sm transition shadow-lg">
+                        ⚠️ YENİ DAVA BAŞLAT (HER ŞEYİ SİL)
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="image-modal" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')"><img id="modal-img" src="" class="max-h-full max-w-full rounded"></div>
@@ -337,11 +393,12 @@
         const QUESTIONS = 'sim_questions';
         const SENTIMENT = 'sim_sentiment';
         const CHAT = 'sim_chat'; 
-        const SPEAK_REQ = 'sim_speak_requests'; // Yeni Koleksiyon
+        const SPEAK_REQ = 'sim_speak_requests';
+        const NOTIFICATIONS = 'sim_notifications'; // YENİ KOLEKSİYON
         const SETTINGS = 'sim_settings';
 
         let currentUser = null;
-        let initialLoadComplete = false; // Ses çalmasını ilk yüklemede engellemek için
+        let initialLoadComplete = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             initSettings();
@@ -352,6 +409,10 @@
         async function initSettings() {
             const doc = await db.collection(SETTINGS).doc('admin_auth').get();
             if(!doc.exists) db.collection(SETTINGS).doc('admin_auth').set({password:'1234'});
+            
+            // Akış ayarını oluştur (yoksa)
+            const flow = await db.collection(SETTINGS).doc('flow').get();
+            if(!flow.exists) db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim'});
         }
 
         function generateSeats(elementId, clickable) {
@@ -434,17 +495,15 @@
             });
         }
 
-        // SÖZ HAKKI İSTEME (MOBİL)
         function requestSpeech() {
             if(!currentUser) return;
-            if(confirm("Söz hakkı istemek üzeresiniz. Tahtada isminiz belirecek.")) {
+            if(confirm("Söz hakkı talebiniz Hakime iletilecek.")) {
                 db.collection(SPEAK_REQ).add({
                     author: currentUser.name,
                     seatId: currentUser.seatId,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => {
-                    alert("Talebiniz Hakime iletildi.");
                 });
+                alert("Talep gönderildi.");
             }
         }
 
@@ -487,58 +546,33 @@
             });
         }
 
-        // SÖZ HAKKI İZLEME (AKILLI TAHTA)
-        function initSpeakRequestMonitor() {
-            // Sayfa ilk açıldığında geçmiş talepler için çalmasın diye bir flag kullanabiliriz
-            // Ancak basitlik için limit(1) ve son ekleneni dinliyoruz.
-            
-            // İlk açılıştan sonraki değişiklikleri algılamak için
-            setTimeout(() => { initialLoadComplete = true; }, 2000);
-
-            db.collection(SPEAK_REQ).orderBy('timestamp', 'desc').limit(1).onSnapshot(snap => {
-                if(!initialLoadComplete) return; // İlk yüklemede çalma
-                
-                snap.docChanges().forEach(change => {
-                    if (change.type === "added") {
-                        const data = change.doc.data();
-                        // Sadece son 10 saniye içinde olanları göster (eski kayıtlar gelmesin)
-                        const now = new Date();
-                        const reqTime = data.timestamp ? data.timestamp.toDate() : new Date();
-                        if ((now - reqTime) < 10000) { 
-                            playAlertSound();
-                            showNotification(data.author, data.seatId);
-                        }
-                    }
-                });
-            });
-        }
-
+        // --- AKILLI TAHTA BİLDİRİM VE AKIŞ SİSTEMİ ---
+        
         function playAlertSound() {
             const audio = document.getElementById('alert-sound');
             audio.currentTime = 0;
-            audio.play().catch(e => console.log("Ses çalma hatası (kullanıcı etkileşimi gerekebilir):", e));
+            audio.play().catch(e => console.log("Ses çalma hatası:", e));
         }
 
-        function showNotification(name, seat) {
+        function showNotification(title, message) {
             const container = document.getElementById('notification-area');
             const notif = document.createElement('div');
             notif.className = "bg-yellow-500 text-slate-900 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 toast-enter border-4 border-white/20";
             notif.innerHTML = `
-                <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center text-yellow-600 font-bold"><i class="fa-solid fa-hand"></i></div>
+                <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center text-yellow-600 font-bold"><i class="fa-solid fa-gavel"></i></div>
                 <div>
-                    <h4 class="font-black text-lg leading-none">SÖZ HAKKI!</h4>
-                    <p class="text-sm font-semibold opacity-90">${name} (Koltuk ${seat})</p>
+                    <h4 class="font-black text-lg leading-none uppercase">${title}</h4>
+                    <p class="text-sm font-semibold opacity-90">${message}</p>
                 </div>
             `;
             container.appendChild(notif);
-
-            // 5 saniye sonra kaldır
+            
             setTimeout(() => {
                 notif.style.opacity = '0';
                 notif.style.transform = 'translateX(100%)';
                 notif.style.transition = 'all 0.5s ease';
                 setTimeout(() => notif.remove(), 500);
-            }, 5000);
+            }, 6000);
         }
 
         function sendQuestion() {
@@ -563,7 +597,41 @@
         function initProjectorData() {
             generateSeats('proj-seat-grid', false);
             initProjectorChat();
-            initSpeakRequestMonitor(); // Söz hakkı takibini başlat
+            
+            // 1. Konuşmacı Değişimini Dinle
+            db.collection(SETTINGS).doc('flow').onSnapshot(doc => {
+                if(doc.exists) {
+                    const speaker = doc.data().current_speaker;
+                    const el = document.getElementById('speaker-text');
+                    const box = document.getElementById('current-speaker-box');
+                    
+                    if(el.textContent !== speaker) {
+                        el.textContent = speaker;
+                        // Efekt
+                        box.classList.remove('speaker-change');
+                        void box.offsetWidth; // reflow trigger
+                        box.classList.add('speaker-change');
+                    }
+                }
+            });
+
+            // 2. Bildirimleri Dinle (Söz Hakkı Onayları)
+            setTimeout(() => { initialLoadComplete = true; }, 2000);
+            
+            db.collection(NOTIFICATIONS).orderBy('timestamp', 'desc').limit(1).onSnapshot(snap => {
+                if(!initialLoadComplete) return;
+                snap.docChanges().forEach(change => {
+                    if(change.type === "added") {
+                        const d = change.doc.data();
+                        const now = new Date();
+                        const reqTime = d.timestamp ? d.timestamp.toDate() : new Date();
+                        if((now - reqTime) < 10000) {
+                            playAlertSound();
+                            showNotification("SÖZ HAKKI VERİLDİ", d.text);
+                        }
+                    }
+                });
+            });
 
             db.collection(SENTIMENT).onSnapshot(snap => {
                 let total=0, count=0; snap.forEach(d=>{total+=d.data().val; count++});
@@ -593,17 +661,70 @@
             else alert("Hata");
         }
 
+        // HAKİM PANELİ FONKSİYONLARI
         function initAdminPanel(){
+            // Sorular
             db.collection(QUESTIONS).orderBy('timestamp','desc').onSnapshot(s=>{
                 const l=document.getElementById('admin-questions-list'); l.innerHTML='';
                 s.forEach(d=>l.innerHTML+=`<li class="bg-slate-700 p-2 rounded mb-2 text-xs"><span class="text-yellow-400 font-bold">${d.data().author}:</span> ${d.data().text}</li>`);
             });
+
+            // Söz Hakkı Talepleri (YENİ)
+            db.collection(SPEAK_REQ).orderBy('timestamp', 'asc').onSnapshot(snap => {
+                const list = document.getElementById('admin-speak-list');
+                const count = document.getElementById('req-count');
+                list.innerHTML = '';
+                count.textContent = snap.size;
+
+                if(snap.empty) {
+                    list.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Bekleyen talep yok.</p>';
+                    return;
+                }
+
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const div = document.createElement('div');
+                    div.className = "bg-slate-700 p-3 rounded flex justify-between items-center";
+                    div.innerHTML = `
+                        <div>
+                            <div class="font-bold text-white text-sm">${d.author}</div>
+                            <div class="text-xs text-slate-400">Koltuk: ${d.seatId}</div>
+                        </div>
+                    `;
+                    const btn = document.createElement('button');
+                    btn.className = "bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs font-bold";
+                    btn.textContent = "Söz Ver";
+                    btn.onclick = () => approveSpeech(doc.id, d.author);
+                    div.appendChild(btn);
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        function setSpeaker(name) {
+            db.collection(SETTINGS).doc('flow').set({
+                current_speaker: name,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        function approveSpeech(reqId, name) {
+            // 1. Bildirim Gönder
+            db.collection(NOTIFICATIONS).add({
+                text: `${name} konuşabilir.`,
+                type: 'grant',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            // 2. Talebi Sil
+            db.collection(SPEAK_REQ).doc(reqId).delete();
+            // 3. Kürsüdeki İsmi Güncelle
+            setSpeaker(name);
         }
 
         async function resetSimulation(){
             if(confirm("Sıfırla?")){
                 const bd=async(c)=>{const s=await db.collection(c).get();s.forEach(d=>d.ref.delete())};
-                await bd(SEATS); await bd(VOTES); await bd(QUESTIONS); await bd(SENTIMENT); await bd(CHAT); await bd(SPEAK_REQ);
+                await bd(SEATS); await bd(VOTES); await bd(QUESTIONS); await bd(SENTIMENT); await bd(CHAT); await bd(SPEAK_REQ); await bd(NOTIFICATIONS);
                 location.reload();
             }
         }
