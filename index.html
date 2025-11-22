@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v10.1</title>
+    <title>Adalet Simülasyonu v10.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -171,8 +171,8 @@
             <div class="text-right"><h1 class="text-3xl font-bold text-yellow-400 tracking-wider">ADALET SİM.</h1><div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div></div>
         </header>
 
-        <div class="flex-1 grid grid-cols-12 gap-6">
-            <div class="col-span-7 flex flex-col gap-4">
+        <div class="flex-1 grid grid-cols-12 gap-6 overflow-hidden">
+            <div class="col-span-7 flex flex-col gap-4 h-full overflow-hidden">
                 <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
                     <h2 class="text-sm font-bold text-slate-400 uppercase mb-6 text-center">Sınıfın Vicdani Kanaati</h2>
                     <div class="relative w-full h-10 bg-slate-700 rounded-full mb-4">
@@ -200,16 +200,22 @@
                 </div>
             </div>
 
-            <div class="col-span-5 flex flex-col gap-4">
-                <div class="bg-slate-800 rounded-2xl border border-slate-700 flex-1 flex flex-col overflow-hidden relative">
+            <div class="col-span-5 flex flex-col gap-4 h-full overflow-hidden">
+                <div class="bg-slate-800 rounded-2xl border border-slate-700 h-1/2 flex flex-col overflow-hidden relative">
                     <div class="bg-slate-700/50 p-2 border-b border-slate-600 flex justify-between items-center"><h2 class="text-xs font-bold text-yellow-400 uppercase pl-2">💬 Canlı Müzakere Akışı</h2><div class="animate-pulse w-2 h-2 bg-green-500 rounded-full mr-2"></div></div>
                     <div id="proj-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto flex flex-col-reverse"></div>
                 </div>
-                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase mb-2 text-center">JÜRİ YOKLAMASI</h3>
-                    <div id="proj-seat-grid" class="grid grid-cols-5 gap-2 content-start"></div>
+                <!-- JÜRİ YOKLAMASI: DİNAMİK VE KAYDIRILABİLİR -->
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 h-1/2 flex flex-col">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase">JÜRİ YOKLAMASI</h3>
+                        <button onclick="location.reload()" class="text-[10px] text-slate-500 hover:text-white"><i class="fa-solid fa-rotate"></i></button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto no-scrollbar pr-1">
+                        <!-- SÜTUN SAYISI 7 YAPILDI -->
+                        <div id="proj-seat-grid" class="grid grid-cols-7 gap-1.5 content-start"></div>
+                    </div>
                 </div>
-                <button onclick="location.reload()" class="text-[10px] text-slate-600 hover:text-slate-400 text-center">Yenile</button>
             </div>
         </div>
     </div>
@@ -329,14 +335,15 @@
                         if(!isTaken) btn.onclick = () => selectSeat(i);
                         grid.appendChild(btn);
                     } else {
-                        // AKILLI TAHTA GÖRÜNÜMÜ (Projector Mode)
-                        div.className = `w-full aspect-square rounded-xl border-2 flex items-center justify-center p-1 text-center transition-all duration-500 relative overflow-hidden ${isTaken ? 'bg-green-600 border-green-400 shadow-lg scale-100 opacity-100' : 'bg-slate-800 border-slate-700 opacity-40 scale-95'}`;
+                        // AKILLI TAHTA GÖRÜNÜMÜ (7 SÜTUN)
+                        div.className = `w-full aspect-square rounded-lg border flex items-center justify-center p-0.5 text-center transition-all duration-500 relative overflow-hidden ${isTaken ? 'bg-green-600 border-green-400 shadow-md scale-100 opacity-100' : 'bg-slate-800 border-slate-700 opacity-30 scale-90'}`;
                         
                         if(isTaken) {
-                            div.innerHTML = `<span class="text-[7px] md:text-[9px] font-bold text-white leading-tight break-words line-clamp-3">${occupied[i]}</span>`;
-                            div.title = occupied[i]; // Tooltip for full name
+                            // İsimler için daha küçük font ve sıkışık yapı
+                            div.innerHTML = `<span class="text-[8px] font-bold text-white leading-none break-words line-clamp-2">${occupied[i]}</span>`;
+                            div.title = occupied[i];
                         } else {
-                            div.innerHTML = `<span class="text-slate-600 text-xs font-mono">${i}</span>`;
+                            div.innerHTML = `<span class="text-slate-600 text-[9px] font-mono">${i}</span>`;
                         }
                         grid.appendChild(div);
                     }
