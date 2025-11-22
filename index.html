@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v7.0</title>
+    <title>Adalet Simülasyonu v7.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -41,6 +41,13 @@
         .official-doc {
             background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
             background-size: 20px 20px;
+            background-color: #fff;
+        }
+        /* Mühür Efekti */
+        .stamp {
+            mask-image: url('https://www.transparenttextures.com/patterns/stardust.png'); /* Doku efekti için */
+            transform: rotate(-12deg);
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -114,97 +121,148 @@
                 </div>
             </div>
 
-            <!-- TAB 2: KANITLAR (RESMİ KURGU METİNLERİ) -->
+            <!-- TAB 2: KANITLAR (GENİŞLETİLMİŞ & RESMİ) -->
             <div id="tab-evidence" class="hidden p-4 space-y-5">
                 <div class="flex items-center justify-between border-b border-slate-300 pb-2">
                     <span class="text-xs font-black text-slate-600 uppercase tracking-widest">2025/456 - Delil Klasörü</span>
                     <i class="fa-solid fa-folder-closed text-slate-400"></i>
                 </div>
                 
-                <!-- 1. DELİL: VİDEO VE OLAY YERİ TUTANAĞI -->
+                <!-- 1. DELİL: VİDEO -->
                 <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
                     <div class="bg-slate-800 px-3 py-2 flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-white"><i class="fa-solid fa-file-video text-red-400 mr-2"></i> DELİL A: Olay Yeri İnceleme</h4>
+                        <h4 class="text-xs font-bold text-white"><i class="fa-solid fa-file-video text-red-400 mr-2"></i> DELİL 1: Olay Yeri Kaydı</h4>
                         <span class="text-[10px] bg-red-500/20 text-red-200 px-2 py-0.5 rounded">KRİMİNAL</span>
                     </div>
-                    <!-- Video -->
                     <div class="aspect-video bg-black">
                         <video controls class="w-full h-full object-contain">
                             <source src="Olay Yeri İnceleme.mp4" type="video/mp4">
                             Tarayıcınız videoyu desteklemiyor.
                         </video>
                     </div>
-                    <!-- Tutanak Metni -->
-                    <div class="p-4 official-doc">
-                        <h5 class="font-serif font-bold text-sm text-slate-900 border-b border-slate-300 pb-1 mb-2">OLAY YERİ TESPİT TUTANAĞI</h5>
-                        <p class="text-[11px] text-slate-700 leading-relaxed font-serif text-justify">
-                            <span class="font-bold">Tarih/Saat:</span> 10.10.2025 / 23:15<br>
-                            <span class="font-bold">Bulgular:</span> İkametin salon kısmında yapılan incelemede, orta sehpa ile duvar arasında (duvara 1.5m mesafede) parçalanmış seramik vazo tespit edilmiştir. Duvar yüzeyinde, yerden 160 cm yükseklikte, sert bir cismin çarpmasına bağlı sıva döküntüsü ve izler kayıt altına alınmıştır. Vazo parçalarının dağılım alanı, cismin yüksek hızla fırlatıldığı kanaatini uyandırmaktadır.
+                    <div class="p-3 official-doc">
+                        <p class="text-[10px] text-slate-700 font-serif leading-snug">
+                            <span class="font-bold">Tespit:</span> Olay mahalinde kırık vazo parçaları ve duvarda 5x5cm çapında darbe izi. Parçaların saçılma açısı, cismin fırlatıldığını doğrular niteliktedir.
                         </p>
                     </div>
                 </div>
 
-                <!-- 2. DELİL: WP1 -->
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP1.png')">
-                    <div class="bg-slate-50 px-3 py-2 flex justify-between items-center border-b border-slate-200">
-                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i> DELİL B: İletişim Dökümü (1)</h4>
-                        <span class="text-[10px] text-slate-400">Siber Suçlar Büro A.</span>
-                    </div>
-                    <div class="flex">
-                        <div class="w-32 bg-slate-100 flex items-center justify-center border-r border-slate-200">
-                            <img src="WP1.png" class="max-h-32 object-contain">
+                <!-- 2. DELİL: WP GÖRÜNTÜLERİ -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer hover:bg-slate-50 transition" onclick="openImage('WP1.png')">
+                    <div class="flex items-center p-3 border-b border-slate-100">
+                        <i class="fa-brands fa-whatsapp text-2xl text-green-500 mr-3"></i>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-800">DELİL 2: İletişim Kaydı (Başlangıç)</h4>
+                            <p class="text-[10px] text-slate-500">Tartışmanın ekonomik nedenlerle başladığına dair kayıt.</p>
                         </div>
-                        <div class="flex-1 p-3">
-                            <h5 class="font-serif font-bold text-[11px] text-slate-900 mb-1">ÖN İNCELEME RAPORU</h5>
-                            <p class="text-[10px] text-slate-600 leading-snug">
-                                Taraflar arasındaki tartışmanın 12:41 sularında "maddi anlaşmazlık" sebebiyle başladığı görülmektedir. Sanığın, müştekiyi harcamalar konusunda uyardığı, müştekinin ise savunma pozisyonunda olduğu tespit edilmiştir. Bu aşamada herhangi bir tehdit unsuru görülmemiştir.
-                            </p>
-                            <p class="text-[9px] text-blue-600 mt-2 underline text-right">Görüntüyü Büyüt</p>
-                        </div>
+                        <i class="fa-solid fa-chevron-right ml-auto text-slate-300 text-xs"></i>
                     </div>
                 </div>
 
-                <!-- 3. DELİL: WP2 -->
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP2.png')">
-                    <div class="bg-slate-50 px-3 py-2 flex justify-between items-center border-b border-slate-200">
-                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i> DELİL C: İletişim Dökümü (2)</h4>
-                        <span class="text-[10px] text-slate-400">Siber Suçlar Büro A.</span>
-                    </div>
-                    <div class="flex">
-                        <div class="w-32 bg-slate-100 flex items-center justify-center border-r border-slate-200">
-                            <img src="WP2.png" class="max-h-32 object-contain">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer hover:bg-slate-50 transition" onclick="openImage('WP2.png')">
+                    <div class="flex items-center p-3 border-b border-slate-100">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 mr-3"></i>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-800">DELİL 3: İletişim Kaydı (Tehdit)</h4>
+                            <p class="text-[10px] text-slate-500">Sanığın tehditkar ifadeler kullandığına dair kayıt.</p>
                         </div>
-                        <div class="flex-1 p-3">
-                            <h5 class="font-serif font-bold text-[11px] text-slate-900 mb-1">TEHDİT UNSURU TESPİTİ</h5>
-                            <p class="text-[10px] text-slate-600 leading-snug">
-                                Tartışmanın ilerleyen saatlerinde (14:11) sanığın üslubunun sertleştiği görülmüştür. <span class="font-bold text-red-700">"Seni evden kovarım", "Pişman olursun", "Sana göstereceğim"</span> şeklindeki ifadeler, TCK kapsamında tehdit ve baskı unsuru olarak değerlendirilmiştir.
-                            </p>
-                            <p class="text-[9px] text-blue-600 mt-2 underline text-right">Görüntüyü Büyüt</p>
-                        </div>
+                        <i class="fa-solid fa-chevron-right ml-auto text-slate-300 text-xs"></i>
                     </div>
                 </div>
 
-                <!-- 4. DELİL: ADLİ TIP RAPORU (SADECE METİN) -->
+                <!-- YENİ DELİLLER (RESMİ METİN FORMATINDA) -->
+
+                <!-- 4. DELİL: TANIK İFADESİ -->
                 <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
-                    <div class="bg-slate-50 px-3 py-2 border-b border-slate-200">
-                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-doctor text-blue-500 mr-2"></i> DELİL D: Genel Adli Muayene Raporu</h4>
+                    <div class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex justify-between">
+                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-secret text-indigo-500 mr-2"></i> DELİL 4: Tanık İfade Tutanağı</h4>
+                        <span class="text-[9px] text-slate-400 font-mono">TUTANAK NO: 2025/88</span>
+                    </div>
+                    <div class="p-4 official-doc relative">
+                        <div class="absolute top-2 right-2 border-2 border-red-800/30 text-red-800/30 text-[10px] font-black p-1 rotate-12 rounded stamp">GİZLİ</div>
+                        <p class="text-[10px] font-bold text-slate-800 mb-1">Tanık: Zeynep K. (Komşu)</p>
+                        <p class="text-[11px] text-slate-700 font-serif leading-relaxed text-justify italic">
+                            "Olay gecesi saat 23:00 sularında üst kattan bağırışmalar gelmeye başladı. Genelde sessiz bir çifttirler. Önce 'Yeter artık, bıktım bu hesaplardan' diye bir erkek sesi duydum. Ardından çok büyük bir cam kırılma sesi (GÜM diye) geldi. O sesten sonra bağırışmalar bıçak gibi kesildi. 5 dakika sonra Elif Hanım'ın ağlayarak merdivenlerden indiğini gördüm."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 5. DELİL: 112 KAYDI -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
+                    <div class="bg-slate-100 px-3 py-2 border-b border-slate-200">
+                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-phone-volume text-blue-500 mr-2"></i> DELİL 5: 112 Acil Çağrı Dökümü</h4>
+                    </div>
+                    <div class="p-4 official-doc">
+                        <div class="space-y-2 font-mono text-[10px]">
+                            <div class="flex gap-2"><span class="font-bold text-slate-500">23:17:05</span> <span class="text-blue-700">[OPERATÖR]:</span> Acil Çağrı Merkezi, olay nedir?</div>
+                            <div class="flex gap-2"><span class="font-bold text-slate-500">23:17:10</span> <span class="text-red-700">[ARAYAN]:</span> (Ağlama sesleri) Kocam... Kocam bana saldırdı. Evden zor kaçtım.</div>
+                            <div class="flex gap-2"><span class="font-bold text-slate-500">23:17:15</span> <span class="text-blue-700">[OPERATÖR]:</span> Hanımefendi sakin olun, yaralı mısınız?</div>
+                            <div class="flex gap-2"><span class="font-bold text-slate-500">23:17:20</span> <span class="text-red-700">[ARAYAN]:</span> Hayır, bana değmedi ama kafama atacaktı. Her şeyi kırdı döktü. Çok korkuyorum.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. DELİL: BANKA DÖKÜMÜ -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
+                    <div class="bg-slate-100 px-3 py-2 border-b border-slate-200">
+                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-money-check-dollar text-green-600 mr-2"></i> DELİL 6: Mali İnceleme Raporu</h4>
+                    </div>
+                    <div class="p-3 official-doc">
+                        <table class="w-full text-[10px] text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-300 text-slate-500">
+                                    <th class="pb-1">Tarih</th>
+                                    <th class="pb-1">İşlem</th>
+                                    <th class="pb-1 text-right">Tutar</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-700 font-mono">
+                                <tr class="border-b border-slate-100"><td class="py-1">01.10.2025</td><td>Kredi Kartı Asgari Ödeme</td><td class="text-right text-red-600">-15.000 TL</td></tr>
+                                <tr class="border-b border-slate-100"><td class="py-1">05.10.2025</td><td>Teknoloji Market</td><td class="text-right">-42.000 TL</td></tr>
+                                <tr><td class="py-1 pt-2 font-bold">DURUM:</td><td colspan="2" class="py-1 pt-2 text-right font-bold text-red-600">KREDİ LİMİTİ AŞIMI MEVCUT</td></tr>
+                            </tbody>
+                        </table>
+                        <p class="text-[9px] text-slate-500 mt-2 italic">*Sanığın "ekonomik baskı altındaydım" savunmasını destekler nitelikte harcama kaydı.</p>
+                    </div>
+                </div>
+
+                <!-- 7. DELİL: ADLİ SİCİL -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
+                    <div class="bg-slate-100 px-3 py-2 border-b border-slate-200">
+                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-fingerprint text-slate-500 mr-2"></i> DELİL 7: Sanık Adli Sicil Kaydı</h4>
+                    </div>
+                    <div class="p-4 official-doc text-center">
+                        <p class="text-[10px] font-serif text-slate-800 mb-2">T.C. ADALET BAKANLIĞI<br>Adli Sicil ve İstatistik Genel Müdürlüğü</p>
+                        <div class="border border-slate-300 p-2 bg-slate-50 mb-2">
+                            <p class="text-[11px] font-bold text-slate-700">SABIKA KAYDI YOKTUR</p>
+                        </div>
+                        <p class="text-[9px] text-slate-500 text-left leading-tight">
+                            Sanık Ahmet Yılmaz'ın arşiv kaydında daha önce herhangi bir şiddet, tehdit veya darp suçuna rastlanmamıştır.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 8. DELİL: ADLİ TIP -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
+                    <div class="bg-slate-100 px-3 py-2 border-b border-slate-200">
+                        <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-doctor text-blue-500 mr-2"></i> DELİL 8: Adli Muayene Raporu</h4>
                     </div>
                     <div class="p-4 official-doc">
                         <div class="flex justify-between items-start mb-2">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Saglik_bakanligi_logo.png/240px-Saglik_bakanligi_logo.png" class="h-8 opacity-50">
+                            <i class="fa-solid fa-staff-snake text-2xl text-red-400 opacity-50"></i>
                             <div class="text-right">
                                 <p class="text-[9px] font-bold text-slate-500">T.C. SAĞLIK BAKANLIĞI</p>
                                 <p class="text-[9px] text-slate-400">Erzurum Şehir Hastanesi</p>
                             </div>
                         </div>
                         <p class="text-[11px] text-slate-700 leading-relaxed font-serif text-justify">
-                            Müşteki Elif Yılmaz'ın (29) yapılan fiziki muayenesinde vücudunda herhangi bir darp, cebir veya ekimoz izine rastlanmamıştır. Ancak şahsın <strong>akut stres bozukluğu</strong> belirtileri gösterdiği, ellerinde tremor (titreme) ve konuşmada anksiyeteye bağlı tutukluk gözlendiği, olayın yarattığı psikolojik travmatik etkinin mevcut olduğu tıbbi kanaatine varılmıştır.
+                            Müşteki Elif Yılmaz'ın (29) yapılan fiziki muayenesinde vücudunda herhangi bir darp, cebir veya ekimoz izine rastlanmamıştır. Ancak şahsın <strong>akut stres bozukluğu</strong> belirtileri gösterdiği, ellerinde tremor (titreme) gözlendiği, olayın yarattığı psikolojik travmatik etkinin mevcut olduğu tıbbi kanaatine varılmıştır.
                         </p>
                     </div>
                 </div>
                 
-                <div class="text-center text-[9px] text-slate-400 mt-4">
-                    Bu belgeler Adalet Simülasyonu kapsamında kurgusal olarak hazırlanmıştır.
+                <div class="text-center text-[9px] text-slate-400 mt-4 pb-4">
+                    * Bu belgeler Adalet Simülasyonu kapsamında eğitim amaçlıdır.
                 </div>
             </div>
 
