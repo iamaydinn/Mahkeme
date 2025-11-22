@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v10.0</title>
+    <title>Adalet Simülasyonu v10.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -205,7 +205,10 @@
                     <div class="bg-slate-700/50 p-2 border-b border-slate-600 flex justify-between items-center"><h2 class="text-xs font-bold text-yellow-400 uppercase pl-2">💬 Canlı Müzakere Akışı</h2><div class="animate-pulse w-2 h-2 bg-green-500 rounded-full mr-2"></div></div>
                     <div id="proj-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto flex flex-col-reverse"></div>
                 </div>
-                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700"><div id="proj-seat-grid" class="grid grid-cols-7 gap-2"></div></div>
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase mb-2 text-center">JÜRİ YOKLAMASI</h3>
+                    <div id="proj-seat-grid" class="grid grid-cols-5 gap-2 content-start"></div>
+                </div>
                 <button onclick="location.reload()" class="text-[10px] text-slate-600 hover:text-slate-400 text-center">Yenile</button>
             </div>
         </div>
@@ -326,8 +329,15 @@
                         if(!isTaken) btn.onclick = () => selectSeat(i);
                         grid.appendChild(btn);
                     } else {
-                        div.className = `w-full aspect-square rounded-full border ${isTaken ? 'bg-green-500 border-green-400 shadow-[0_0_5px_rgba(34,197,94,0.6)]' : 'bg-slate-700 border-slate-600 opacity-30'}`;
-                        if(isTaken) div.title = occupied[i];
+                        // AKILLI TAHTA GÖRÜNÜMÜ (Projector Mode)
+                        div.className = `w-full aspect-square rounded-xl border-2 flex items-center justify-center p-1 text-center transition-all duration-500 relative overflow-hidden ${isTaken ? 'bg-green-600 border-green-400 shadow-lg scale-100 opacity-100' : 'bg-slate-800 border-slate-700 opacity-40 scale-95'}`;
+                        
+                        if(isTaken) {
+                            div.innerHTML = `<span class="text-[7px] md:text-[9px] font-bold text-white leading-tight break-words line-clamp-3">${occupied[i]}</span>`;
+                            div.title = occupied[i]; // Tooltip for full name
+                        } else {
+                            div.innerHTML = `<span class="text-slate-600 text-xs font-mono">${i}</span>`;
+                        }
                         grid.appendChild(div);
                     }
                 }
