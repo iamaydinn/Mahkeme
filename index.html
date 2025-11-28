@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v36.0</title>
+    <title>Adalet Simülasyonu Ataüni</title>
     
     <!-- Kütüphaneler -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,9 +24,9 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- GÖRSEL EFEKTLER --- */
+        /* --- GLOW & GLASS EFEKTLERİ --- */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.95); /* Daha opak */
+            background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(20px);
             border: 3px solid rgba(250, 204, 21, 0.8);
             box-shadow: 0 0 60px rgba(250, 204, 21, 0.4);
@@ -45,20 +45,18 @@
         .btn-glow-projector { box-shadow: 0 0 10px #06b6d4; border: 2px solid #22d3ee; animation: pulse-cyan 2s infinite alternate; }
         @keyframes pulse-cyan { from { box-shadow: 0 0 5px #06b6d4; } to { box-shadow: 0 0 20px #22d3ee; } }
 
-        .nav-item.active { color: #fbbf24; border-top: 3px solid #fbbf24; background: rgba(30, 41, 59, 0.95); }
+        /* Diğer Stiller */
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .nav-item.active { color: #fbbf24; border-top: 3px solid #fbbf24; background: rgba(30, 41, 59, 0.95); }
         .blur-overlay { filter: blur(12px); pointer-events: none; user-select: none; }
-        .msg-enter { animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .msg-enter { animation: slideLeft 0.3s ease-out; }
+        @keyframes slideLeft { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
         .quiz-enter { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         @keyframes bounceIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         
         .vip-msg { background: linear-gradient(90deg, rgba(66, 32, 6, 0.95), rgba(113, 63, 18, 0.95)); border: 2px solid #facc15; box-shadow: 0 0 15px rgba(250, 204, 21, 0.3); }
         .avatar-option.selected { border: 3px solid #fbbf24; box-shadow: 0 0 20px #fbbf24; transform: scale(1.1); }
-        .evidence-item { background-color: rgba(30, 41, 59, 0.6); border: 1px solid rgba(71, 85, 105, 0.5); transition: all 0.2s; }
-        .evidence-item:active { transform: scale(0.98); background-color: rgba(51, 65, 85, 0.8); }
         
-        /* Koltuklar */
         .seat-occupied { background-color: #b91c1c; border-color: #7f1d1d; color: white; cursor: not-allowed; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
         .seat-empty { background-color: #334155; border-color: #475569; color: #94a3b8; transition: all 0.2s; }
         .seat-empty:hover { background-color: #fbbf24; color: #0f172a; border-color: #f59e0b; transform: scale(1.05); }
@@ -74,7 +72,7 @@
         #local-toast { transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 10000; }
         .toast-show { transform: translateX(-50%) translateY(0) !important; opacity: 1 !important; }
 
-        /* Overlay Fix */
+        /* Bildirim Katmanı */
         #projector-overlay { z-index: 9999 !important; }
     </style>
 </head>
@@ -95,9 +93,9 @@
         <i class="fa-solid fa-check-circle text-green-400"></i> <span id="toast-msg">İşlem Başarılı</span>
     </div>
 
-    <!-- TAM EKRAN BİLDİRİM OVERLAY (FIXED & GARANTİLİ GÖRÜNÜM) -->
-    <div id="projector-overlay" class="hidden fixed inset-0 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 overlay-enter">
-        <div class="glass-panel p-16 rounded-3xl text-center w-full max-w-5xl transform transition-all relative">
+    <!-- TAM EKRAN BİLDİRİM OVERLAY (FIXED & EN ÜST KATMAN) -->
+    <div id="projector-overlay" class="hidden fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 overlay-enter">
+        <div class="glass-panel p-12 rounded-3xl text-center w-full max-w-4xl transform transition-all relative">
             <i id="overlay-icon" class="text-9xl mb-8 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] block mx-auto animate-bounce"></i>
             <h1 id="overlay-text" class="text-5xl md:text-7xl font-black text-white tracking-widest uppercase drop-shadow-lg leading-tight"></h1>
         </div>
@@ -144,7 +142,10 @@
             <button onclick="sendReaction('👏')" class="w-12 h-12 bg-slate-800 rounded-full shadow-lg text-xl border border-slate-600 active:scale-90 transition hover:bg-slate-700 hover:border-yellow-500">👏</button>
         </div>
 
+        <!-- QUIZ MODAL -->
         <div id="student-quiz-modal" class="hidden fixed inset-0 z-[300] bg-slate-950/95 flex flex-col items-center justify-center p-6 quiz-enter text-white"><div class="w-full max-w-md bg-slate-800 p-6 rounded-2xl border border-yellow-500/50 shadow-2xl"><div class="flex justify-between items-center mb-6"><span class="bg-red-600 px-3 py-1 rounded text-xs font-bold animate-pulse">CANLI SORU</span><span class="text-yellow-400 font-bold"><i class="fa-solid fa-clock mr-1"></i>Cevapla!</span></div><h2 id="quiz-question-text" class="text-xl font-bold text-center mb-6 leading-tight">...</h2><div id="quiz-options-container" class="grid grid-cols-1 gap-3 w-full"></div><p id="quiz-status-text" class="text-center mt-6 text-slate-400 text-sm hidden">Cevabınız alındı.</p></div></div>
+        
+        <!-- GEREKÇELİ KARAR -->
         <div id="reason-modal" class="hidden fixed inset-0 z-[300] bg-slate-950/95 flex flex-col items-center justify-center p-6"><div class="bg-slate-800 w-full max-w-md p-6 rounded-2xl border border-slate-600 shadow-2xl"><h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-scale-unbalanced text-yellow-400"></i> Karar Gerekçeniz</h3><p class="text-slate-400 text-xs mb-4">Vicdani kanaatinizin sebebini kısaca açıklayınız. (+20 Puan)</p><textarea id="vote-reason" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500 mb-4 h-32 resize-none" placeholder="Çünkü..."></textarea><div class="flex gap-3"><button onclick="document.getElementById('reason-modal').classList.add('hidden')" class="flex-1 bg-slate-700 text-white py-3 rounded-xl text-sm font-bold hover:bg-slate-600">İptal</button><button onclick="confirmVote()" class="flex-1 bg-green-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-green-500 shadow-lg">GÖNDER</button></div></div></div>
 
         <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-20 bg-slate-200 text-slate-800">
@@ -160,8 +161,13 @@
                 <div class="evidence-item rounded-xl p-4 flex items-center justify-between cursor-pointer bg-white text-slate-800 shadow-sm border border-slate-200" onclick="openImage('WP2.png')"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i></div><div><h4 class="font-bold text-sm">Yazışma Kaydı 2</h4><p class="text-[10px] text-slate-500">Tehdit</p></div></div><i class="fa-solid fa-eye text-slate-300"></i></div>
             </div>
 
-            <div id="tab-chat" class="tab-content hidden flex-col h-full"><div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto pb-20"></div><div class="bg-white p-3 border-t flex gap-2 items-center safe-area-bottom sticky bottom-0 shadow-lg z-20"><input type="text" id="chat-input" class="flex-1 bg-slate-100 rounded-full px-4 py-3 text-sm outline-none border focus:border-blue-500" placeholder="Yaz..."><button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full shadow active:scale-90 transition"><i class="fa-solid fa-paper-plane"></i></button></div></div>
+            <div id="tab-chat" class="tab-content hidden flex-col h-full">
+                <div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto pb-20"></div>
+                <div class="bg-white p-3 border-t flex gap-2 items-center safe-area-bottom sticky bottom-0 shadow-lg z-20"><input type="text" id="chat-input" class="flex-1 bg-slate-100 rounded-full px-4 py-3 text-sm outline-none border focus:border-blue-500" placeholder="Yaz..."><button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full shadow active:scale-90 transition"><i class="fa-solid fa-paper-plane"></i></button></div>
+            </div>
+
             <div id="tab-comm" class="tab-content hidden p-4"><div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 shadow-sm"><h3 class="font-bold text-indigo-900 text-sm mb-3">Hakime Soru İlet</h3><textarea id="question-input" rows="4" class="w-full p-3 rounded-lg text-sm border border-indigo-200 focus:outline-none" placeholder="Sorunuz..."></textarea><button onclick="sendQuestion()" class="w-full mt-3 bg-indigo-600 text-white py-3 rounded-lg text-sm font-bold shadow-md active:scale-95 transition">GÖNDER</button></div></div>
+
             <div id="tab-vote" class="tab-content hidden p-6 flex-col justify-center space-y-6 h-full"><h2 class="text-center font-black text-2xl text-slate-800">KARAR VAKTİ</h2><button onclick="prepareVote('SUÇLU')" class="w-full py-4 bg-red-600 text-white rounded-xl shadow-lg font-bold text-lg active:scale-95 transition border-b-4 border-red-800">SUÇLU</button><button onclick="prepareVote('SUÇSUZ')" class="w-full py-4 bg-green-600 text-white rounded-xl shadow-lg font-bold text-lg active:scale-95 transition border-b-4 border-green-800">SUÇSUZ</button></div>
         </main>
 
@@ -201,38 +207,46 @@
 
     <!-- 4. AKILLI TAHTA MODU -->
     <div id="projector-panel" class="hidden absolute inset-0 bg-slate-900 text-white z-[150] overflow-hidden flex flex-col p-6 relative">
-        <div id="projector-overlay" class="hidden absolute inset-0 z-[300] flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 overlay-enter"><div class="glass-panel p-12 rounded-3xl text-center w-full max-w-3xl transform transition-all"><i id="overlay-icon" class="text-8xl mb-6 text-white drop-shadow-lg block mx-auto animate-bounce"></i><h1 id="overlay-text" class="text-4xl md:text-5xl font-black text-white tracking-widest uppercase drop-shadow-lg leading-tight"></h1></div></div>
         <div id="notification-area" class="absolute top-24 right-6 w-96 z-[200] space-y-3 pointer-events-none"></div>
         <div id="emoji-container" class="absolute inset-0 pointer-events-none z-[250] overflow-hidden"></div>
+
+        <!-- TAM EKRAN BİLDİRİM (FIXED) -->
+        <div id="broadcast-overlay" class="hidden fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/85 backdrop-blur-md p-6 overlay-enter">
+            <div class="glass-panel p-16 rounded-3xl text-center w-full max-w-5xl transform transition-all relative">
+                <i id="overlay-icon" class="text-9xl mb-8 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] block mx-auto animate-bounce"></i>
+                <h1 id="overlay-text" class="text-5xl md:text-7xl font-black text-white tracking-widest uppercase drop-shadow-lg leading-tight"></h1>
+            </div>
+        </div>
 
         <header class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6 shrink-0">
             <div class="flex items-center gap-6"><div id="current-speaker-box" class="bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-yellow-400 shadow-lg"><span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">KÜRSÜDEKİ KONUŞMACI</span><h2 id="current-speaker-name" class="text-2xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-microphone-lines text-yellow-400 animate-pulse"></i><span id="speaker-text">Hakim</span></h2></div><div id="timer-box" class="hidden bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-red-500 shadow-lg flex flex-col items-center justify-center w-32"><span class="text-[10px] text-slate-400 uppercase tracking-widest">SÜRE</span><span id="timer-display" class="text-3xl font-mono font-bold text-red-400">00:00</span></div></div>
             <div class="text-right"><h1 class="text-3xl font-bold text-yellow-400 tracking-wider drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">ADALET SİM.</h1><div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div></div>
         </header>
-        <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 pb-10 project-grid">
-            <div class="col-span-1 md:col-span-7 flex flex-col gap-4">
-                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col justify-center items-center min-h-[200px]">
+        <div class="flex-1 flex flex-col md:flex-row gap-6 h-full overflow-hidden pb-10">
+            <div class="md:w-[60%] flex flex-col gap-4 h-full">
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col justify-center items-center h-[40%] min-h-[200px]">
                     <h2 class="text-lg font-bold text-slate-400 uppercase mb-8">Vicdani Kanaat</h2>
                     <div class="relative w-full h-12 bg-slate-700 rounded-full mb-4 overflow-hidden"><div class="absolute inset-0 bg-gradient-to-r from-red-600 via-slate-600 to-green-600 opacity-50"></div><div id="proj-sentiment-marker" class="absolute top-0 w-1 h-full bg-white shadow-lg transition-all duration-700 flex items-center justify-center" style="left: 50%;"><div id="proj-sentiment-val" class="absolute -top-8 bg-white text-slate-900 text-xs font-bold px-2 py-1 rounded">50%</div></div></div>
                     <div class="flex justify-between w-full font-bold px-2 mt-2"><span class="text-red-500">DAVACI</span><span class="text-green-500">SANIK</span></div>
                 </div>
-                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden min-h-[200px]">
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden h-[60%] flex flex-col justify-center">
                     <h2 class="text-sm font-bold text-slate-400 uppercase mb-4 text-center">Oylama Durumu</h2>
                     <div id="vote-blind-overlay" class="absolute inset-0 z-10 bg-slate-800/95 flex flex-col items-center justify-center hidden"><i class="fa-solid fa-eye-slash text-4xl text-slate-600 mb-2"></i><h3 class="text-lg font-bold text-white">GİZLİ</h3></div>
-                    <div id="vote-content" class="space-y-4 transition-all">
-                        <div><div class="flex justify-between mb-1"><span class="text-sm font-bold text-red-500">SUÇLU</span><span id="proj-vote-guilty" class="text-white font-bold text-sm">0</span></div><div class="h-6 bg-slate-700 rounded-full overflow-hidden border border-slate-600"><div id="proj-bar-guilty" class="h-full bg-red-600 transition-all duration-1000 shadow-[0_0_10px_red]" style="width: 0%"></div></div></div>
-                        <div><div class="flex justify-between mb-1"><span class="text-sm font-bold text-green-500">SUÇSUZ</span><span id="proj-vote-notguilty" class="text-white font-bold text-sm">0</span></div><div class="h-6 bg-slate-700 rounded-full overflow-hidden border border-slate-600"><div id="proj-bar-notguilty" class="h-full bg-green-600 transition-all duration-1000 shadow-[0_0_10px_green]" style="width: 0%"></div></div></div>
+                    <div id="vote-content" class="space-y-6 transition-all w-full">
+                        <div><div class="flex justify-between mb-1"><span class="text-sm font-bold text-red-500">SUÇLU</span><span id="proj-vote-guilty" class="text-white font-bold text-sm">0</span></div><div class="h-8 bg-slate-700 rounded-full overflow-hidden border border-slate-600"><div id="proj-bar-guilty" class="h-full bg-red-600 transition-all duration-1000 shadow-[0_0_10px_red]" style="width: 0%"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-sm font-bold text-green-500">SUÇSUZ</span><span id="proj-vote-notguilty" class="text-white font-bold text-sm">0</span></div><div class="h-8 bg-slate-700 rounded-full overflow-hidden border border-slate-600"><div id="proj-bar-notguilty" class="h-full bg-green-600 transition-all duration-1000 shadow-[0_0_10px_green]" style="width: 0%"></div></div></div>
                     </div>
-                    <div id="proj-final-verdict" class="mt-4 text-center text-2xl font-black tracking-widest hidden animate-pulse">KARAR: BEKLENİYOR</div>
+                    <div id="proj-final-verdict" class="mt-8 text-center text-4xl font-black tracking-widest hidden animate-pulse drop-shadow-lg absolute bottom-10 left-0 right-0">KARAR: BEKLENİYOR</div>
                 </div>
             </div>
-            <div class="col-span-1 md:col-span-5 flex flex-col gap-4 h-full">
-                <div class="bg-slate-800 rounded-2xl border border-slate-700 h-1/2 flex flex-col overflow-hidden relative"><div class="bg-slate-700/50 p-2 border-b border-slate-600 flex justify-between items-center"><h2 class="text-xs font-bold text-yellow-400 uppercase pl-2">💬 Müzakere</h2></div><div id="proj-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto flex flex-col-reverse"></div></div>
-                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 h-1/2 flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-400 uppercase">YOKLAMA</h3></div><div class="flex-1 overflow-y-auto no-scrollbar pr-1"><div id="proj-seat-grid" class="grid grid-cols-7 gap-1.5 content-start"></div></div></div>
+            <div class="md:w-[40%] flex flex-col gap-4 h-full">
+                <div class="bg-slate-800 rounded-2xl border border-slate-700 h-[60%] flex flex-col overflow-hidden relative"><div class="bg-slate-700/50 p-3 border-b border-slate-600 flex justify-between items-center"><h2 class="text-sm font-bold text-yellow-400 uppercase pl-2">💬 Müzakere Akışı</h2></div><div id="proj-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto flex flex-col-reverse"></div></div>
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 h-[40%] flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-400 uppercase">YOKLAMA</h3></div><div class="flex-1 overflow-y-auto no-scrollbar pr-1"><div id="proj-seat-grid" class="grid grid-cols-7 gap-1.5 content-start"></div></div></div>
             </div>
         </div>
     </div>
 
+    <!-- Login Modal -->
     <div id="admin-login-modal" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4"><form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700 relative"><h3 class="text-xl font-bold text-white mb-4" id="login-role-title">Giriş Yap</h3><input type="password" id="admin-pass" placeholder="Şifre" class="w-full p-3 bg-slate-900 border border-slate-600 rounded mb-4 text-white outline-none focus:border-blue-500"><div class="flex gap-2"><button type="button" onclick="document.getElementById('admin-login-modal').classList.add('hidden')" class="w-1/2 bg-slate-700 text-white py-2 rounded font-bold">İptal</button><button type="submit" class="w-1/2 bg-blue-600 text-white font-bold py-2 rounded">Giriş</button></div></form></div>
     <div id="image-modal" class="hidden fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')"><img id="modal-img" src="" class="max-h-full max-w-full rounded"></div>
     <div id="video-modal" class="hidden fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')"><video id="modal-video" controls class="max-h-full max-w-full rounded"><source src="olay_yeri.mp4" type="video/mp4"></video></div>
@@ -443,7 +457,6 @@
             document.getElementById('vote-sound').play();
             showLocalToast("OYUNUZ ALINDI!");
             document.getElementById('reason-modal').classList.add('hidden');
-            document.getElementById('vote-status').textContent = "Oyunuz: " + voteChoice;
         }
         
         window.sendQuestion = function() {
@@ -476,10 +489,8 @@
                 const list = document.getElementById('teacher-attendance-list'); list.innerHTML = '';
                 const scoreSnap = await db.collection(SCORES).get();
                 const votesSnap = await db.collection(VOTES).get();
-                
                 const scores = {}; scoreSnap.forEach(d => scores[d.id] = d.data().val);
                 const votes = {}; votesSnap.forEach(d => votes[d.id] = d.data());
-
                 snap.forEach(doc => {
                     const d = doc.data();
                     const voteData = votes[d.seatId] || { vote: '-', reason: '' };
@@ -612,8 +623,9 @@
                             setTimeout(() => emojiEl.remove(), 3000);
                         } else {
                             // STANDART BİLDİRİM (TAM EKRAN OVERLAY)
+                            // Z-INDEX FIX ve GÖRÜNÜRLÜK KONTROLÜ
                             overlay.classList.remove('hidden');
-                            overlay.style.display = 'flex';
+                            overlay.style.display = 'flex'; 
                             text.textContent = d.text;
                             
                             if(d.type === 'silence') { icon.className = 'fa-solid fa-bell-slash text-red-500 text-8xl drop-shadow-lg animate-pulse'; document.getElementById('shh-sound').play(); }
@@ -677,8 +689,9 @@
         window.openImage = function(src) { document.getElementById('modal-img').src=src; document.getElementById('image-modal').classList.remove('hidden'); }
         window.openVideoModal = function() { document.getElementById('video-modal').classList.remove('hidden'); }
         window.logoutUser = async function() { 
-            let sId = currentUser ? currentUser.seatId : localStorage.getItem('seatId');
-            if(sId) { await db.collection(SEATS).doc(String(sId)).delete(); }
+            if(currentUser && currentUser.seatId) {
+                await db.collection(SEATS).doc(String(currentUser.seatId)).delete();
+            }
             localStorage.clear(); location.reload(); 
         }
     </script>
