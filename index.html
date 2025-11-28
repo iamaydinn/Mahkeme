@@ -3,50 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v15.0</title>
+    <title>Adalet Simülasyonu Ataüni</title>
+    
+    <!-- Kütüphaneler -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script> <!-- Konfeti için -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <style>
         :root { --primary-navy: #0f172a; --accent-gold: #fbbf24; }
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; height: 100dvh; height: -webkit-fill-available; }
-        .nav-item.active { color: var(--accent-gold); border-top: 3px solid var(--accent-gold); background-color: rgba(15, 23, 42, 0.95); }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #020617; 
+            color: #f1f5f9;
+            height: 100dvh; 
+            width: 100vw;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- NEON & ANİMASYONLAR --- */
+        .btn-glow-teacher { box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); border: 2px solid #facc15; animation: pulse-yellow 3s infinite; }
+        @keyframes pulse-yellow { 50% { box-shadow: 0 0 25px rgba(234, 179, 8, 0.6); } }
+
+        .btn-glow-judge { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); border: 2px solid #64748b; animation: pulse-blue 4s infinite; }
+        @keyframes pulse-blue { 50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.5); } }
+
+        .btn-glow-projector { box-shadow: 0 0 10px #06b6d4; border: 2px solid #22d3ee; animation: pulse-cyan 2s infinite alternate; }
+        @keyframes pulse-cyan { from { box-shadow: 0 0 5px #06b6d4; } to { box-shadow: 0 0 20px #22d3ee; } }
+
+        .btn-help { animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
+
+        .nav-item.active { color: #fbbf24; border-top: 3px solid #fbbf24; background: rgba(30, 41, 59, 0.9); }
         .nav-item { transition: all 0.2s ease; border-top: 3px solid transparent; }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .official-doc { background-image: radial-gradient(#e5e7eb 1px, transparent 1px); background-size: 20px 20px; background-color: #fff; }
-        .stamp { mask-image: url('https://www.transparenttextures.com/patterns/stardust.png'); transform: rotate(-12deg); opacity: 0.8; }
         .speaker-change { animation: flashBg 1s ease; }
         @keyframes flashBg { 0% { background-color: #fbbf24; } 100% { background-color: #1e293b; } }
-        .quiz-enter { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        @keyframes bounceIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .blur-overlay { filter: blur(12px); pointer-events: none; user-select: none; }
-
-        /* BUTON EFEKTLERİ */
-        .btn-glow-teacher { animation: glow-yellow 2s infinite; box-shadow: 0 0 10px rgba(234, 179, 8, 0.5); }
-        @keyframes glow-yellow { 0% { box-shadow: 0 0 5px rgba(234, 179, 8, 0.5); } 50% { box-shadow: 0 0 20px rgba(234, 179, 8, 0.8); } 100% { box-shadow: 0 0 5px rgba(234, 179, 8, 0.5); } }
         
-        .btn-glow-judge { animation: glow-blue 3s infinite; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-        @keyframes glow-blue { 0% { background-color: #334155; } 50% { background-color: #475569; box-shadow: 0 0 15px rgba(148, 163, 184, 0.5); } 100% { background-color: #334155; } }
+        .blur-overlay { filter: blur(10px); pointer-events: none; user-select: none; }
         
-        .btn-glow-projector { animation: glow-cyan 1.5s infinite alternate; }
-        @keyframes glow-cyan { from { box-shadow: 0 0 5px #06b6d4; } to { box-shadow: 0 0 15px #22d3ee, 0 0 5px #fff; } }
+        /* Chat Balon Animasyonu */
+        .msg-enter { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* KILAVUZ BUTONU EFEKTİ */
-        .btn-help-glow { animation: pulse-help 2s infinite; text-shadow: 0 0 5px #fff; }
-        @keyframes pulse-help { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(168, 85, 247, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); } }
-
-        /* NEON METİN EFEKTLERİ */
-        .neon-text-pink { color: #f472b6; text-shadow: 0 0 5px #f472b6, 0 0 10px #f472b6; }
-        .neon-text-blue { color: #22d3ee; text-shadow: 0 0 5px #22d3ee, 0 0 10px #22d3ee; }
-        .neon-text-green { color: #a3e635; text-shadow: 0 0 5px #a3e635, 0 0 10px #a3e635; }
-        .neon-text-purple { color: #e879f9; text-shadow: 0 0 5px #e879f9, 0 0 10px #e879f9; }
-        .neon-text-yellow { color: #facc15; text-shadow: 0 0 5px #facc15, 0 0 10px #facc15; }
+        /* Neon Metinler */
+        .neon-pink { color: #f472b6; text-shadow: 0 0 5px #be185d; }
+        .neon-cyan { color: #22d3ee; text-shadow: 0 0 5px #0e7490; }
+        .neon-lime { color: #a3e635; text-shadow: 0 0 5px #4d7c0f; }
+        .neon-amber { color: #fbbf24; text-shadow: 0 0 5px #b45309; }
     </style>
 </head>
-<body class="flex flex-col overflow-hidden bg-slate-900 text-slate-100 h-full">
+<body class="bg-slate-950 text-slate-100">
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 
@@ -54,238 +68,162 @@
     <audio id="quiz-sound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg" preload="auto"></audio>
 
     <!-- 1. GİRİŞ EKRANI -->
-    <div id="login-screen" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center p-4">
+    <div id="login-screen" class="absolute inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-4">
         
-        <!-- YARDIM BUTONU (SAĞ ÜST) -->
-        <button onclick="document.getElementById('help-modal').classList.remove('hidden')" class="absolute top-6 right-6 w-12 h-12 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center shadow-lg btn-help-glow border-2 border-purple-300 z-50">
-            <i class="fa-solid fa-question text-2xl font-bold"></i>
+        <!-- Kılavuz Butonu -->
+        <button onclick="document.getElementById('help-modal').classList.remove('hidden')" class="absolute top-6 right-6 w-12 h-12 rounded-full bg-purple-600/20 border-2 border-purple-500 text-purple-300 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.5)] btn-help z-50">
+            <i class="fa-solid fa-question text-xl font-bold"></i>
         </button>
 
-        <div class="mb-4 text-center flex flex-col items-center w-full max-w-md relative z-10">
-            <div class="bg-white p-2 rounded-full mb-3 shadow-lg shadow-yellow-500/20">
-                <img src="https://upload.wikimedia.org/wikipedia/tr/c/cc/Ataturkuni_logo.png?20200406213338" alt="Atatürk Üniversitesi" class="w-16 h-16 object-contain" onerror="this.style.display='none'">
+        <div class="text-center w-full max-w-md mb-6 relative z-10">
+            <div class="bg-white p-3 rounded-full mb-4 inline-block shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                <img src="https://upload.wikimedia.org/wikipedia/tr/c/cc/Ataturkuni_logo.png?20200406213338" alt="Logo" class="w-20 h-20 object-contain">
             </div>
-            <h2 class="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">ATATÜRK ÜNİVERSİTESİ</h2>
-            <h3 class="text-xs text-yellow-400 font-bold tracking-wide mb-2 border-b border-slate-700 pb-2">SOSYAL BİLGİLER ÖĞRETMENLİĞİ</h3>
-            <h1 class="text-3xl font-black tracking-widest text-white">ADALET SİM.</h1>
-            <p class="text-slate-500 text-[10px] italic">Hazırlayan: Muhammet Emin Aydın</p>
-        </div>
-        
-        <div class="w-full max-w-xs space-y-2 relative z-10">
-            <input type="text" id="juri-ad" placeholder="Öğrenci Adı Soyadı" class="w-full p-3 bg-slate-800 rounded-xl border border-slate-600 text-white focus:border-yellow-400 outline-none text-center text-sm shadow-inner">
-            <p id="login-msg" class="text-red-400 text-xs h-4 text-center"></p>
+            <h2 class="text-[10px] font-bold text-slate-400 tracking-[0.3em] uppercase mb-1">ATATÜRK ÜNİVERSİTESİ</h2>
+            <h3 class="text-xs text-yellow-400 font-bold tracking-widest border-b border-slate-800 pb-2 inline-block px-4 mb-2">SOSYAL BİLGİLER ÖĞRETMENLİĞİ</h3>
+            <h1 class="text-4xl font-black tracking-widest text-white drop-shadow-lg">ADALET SİM.</h1>
+            <p class="text-slate-500 text-[10px] italic mt-2">Hazırlayan: Muhammet Emin Aydın</p>
         </div>
 
-        <div class="w-full max-w-md mt-2 mb-24 flex-1 overflow-y-auto no-scrollbar relative z-10 bg-slate-800/30 p-3 rounded-xl border border-slate-800">
-            <p class="text-center text-xs text-slate-400 mb-2 font-bold">Koltuk Seçimi 👇</p>
-            <div id="koltuk-grid" class="grid grid-cols-5 gap-2 pb-10"></div>
+        <div class="w-full max-w-xs space-y-3 mb-4 z-10">
+            <input type="text" id="juri-ad" placeholder="Öğrenci Adı Soyadı" class="w-full p-4 bg-slate-900/80 backdrop-blur rounded-xl border border-slate-700 text-white focus:border-yellow-500 outline-none text-center text-sm shadow-inner transition placeholder-slate-600">
         </div>
-        
-        <div class="fixed bottom-6 left-0 right-0 flex gap-3 w-full justify-center px-4 z-20">
-            <button onclick="openAdminLogin('teacher')" class="flex-1 text-slate-900 bg-yellow-500 hover:bg-yellow-400 transition text-xs font-black px-3 py-3 rounded-xl shadow-lg btn-glow-teacher border-2 border-yellow-300">
-                <i class="fa-solid fa-chalkboard-user mr-2"></i>ÖĞRETMEN
+
+        <div class="w-full max-w-md flex-1 overflow-y-auto no-scrollbar bg-slate-900/50 p-4 rounded-xl border border-slate-800 mb-24 relative z-10 shadow-inner">
+            <p class="text-center text-xs text-slate-400 mb-3 font-bold sticky top-0 bg-slate-900/95 py-2 z-20 border-b border-slate-800">KOLTUK SEÇİMİ 👇</p>
+            <div id="koltuk-grid" class="grid grid-cols-5 gap-3 pb-4"></div>
+        </div>
+
+        <div class="fixed bottom-8 left-0 right-0 flex gap-4 w-full max-w-md mx-auto px-6 z-50 items-center">
+            <button onclick="openAdminLogin('teacher')" class="flex-1 text-slate-900 font-black py-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs bg-yellow-500 btn-glow-teacher active:scale-95">
+                <i class="fa-solid fa-chalkboard-user text-lg"></i> ÖĞRETMEN
             </button>
-            <button onclick="openAdminLogin('judge')" class="flex-1 text-white bg-slate-700 hover:bg-slate-600 transition text-xs font-bold border border-slate-500 px-3 py-3 rounded-xl shadow-lg btn-glow-judge">
-                <i class="fa-solid fa-scale-balanced mr-2"></i>HAKİM
+            <button onclick="openAdminLogin('judge')" class="flex-1 text-white font-bold py-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs bg-slate-700 btn-glow-judge active:scale-95">
+                <i class="fa-solid fa-scale-balanced text-lg"></i> HAKİM
             </button>
-            <button onclick="openProjectorMode()" class="w-14 bg-cyan-600 text-white rounded-xl flex items-center justify-center shadow-lg btn-glow-projector border border-cyan-400">
-                <i class="fa-solid fa-tv text-lg"></i>
+            <button onclick="openProjectorMode()" class="w-16 h-16 text-white rounded-2xl flex items-center justify-center bg-cyan-600 btn-glow-projector active:scale-95">
+                <i class="fa-solid fa-tv text-2xl"></i>
             </button>
-        </div>
-    </div>
-
-    <!-- KULLANMA KILAVUZU MODALI -->
-    <div id="help-modal" class="hidden fixed inset-0 z-[150] bg-black/95 flex items-center justify-center p-4">
-        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl border border-slate-600 shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
-            <header class="bg-slate-900 p-4 border-b border-slate-700 flex justify-between items-center">
-                <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-book-open mr-2 text-purple-400"></i>Kullanma Kılavuzu</h2>
-                <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </header>
-            <div class="p-6 overflow-y-auto space-y-6 text-sm text-slate-300">
-                
-                <div class="flex gap-4">
-                    <div class="bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/30 w-12 h-12 flex items-center justify-center flex-shrink-0 text-yellow-400"><i class="fa-solid fa-user-graduate text-xl"></i></div>
-                    <div>
-                        <h3 class="text-white font-bold mb-1">Öğrenci (Jüri)</h3>
-                        <p>Adınızı girip boş bir koltuk seçin. "Canlı" sekmesinden vicdani kanaatinizi belirtin. "Sohbet"ten tartışın, "Söz İste" butonu ile Hakime haber verin. Duruşma sonunda kararınızı verin.</p>
-                    </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="bg-blue-500/10 p-3 rounded-lg border border-blue-500/30 w-12 h-12 flex items-center justify-center flex-shrink-0 text-blue-400"><i class="fa-solid fa-chalkboard-user text-xl"></i></div>
-                    <div>
-                        <h3 class="text-white font-bold mb-1">Öğretmen (Admin)</h3>
-                        <p>Şifre: <strong>admin</strong>. Sınıf yönetimi panelinden anlık Quiz başlatın, canlı sonuçları görün ve öğrencilere +/- puan verin. Yoklama listesini takip edin.</p>
-                    </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="bg-slate-500/10 p-3 rounded-lg border border-slate-500/30 w-12 h-12 flex items-center justify-center flex-shrink-0 text-slate-300"><i class="fa-solid fa-gavel text-xl"></i></div>
-                    <div>
-                        <h3 class="text-white font-bold mb-1">Hakim</h3>
-                        <p>Şifre: <strong>1234</strong>. Duruşma akışını yönetin. Kimin konuşacağını seçin, süreyi başlatın. Öğrencilerden gelen söz hakkı taleplerini onaylayın.</p>
-                    </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="bg-cyan-500/10 p-3 rounded-lg border border-cyan-500/30 w-12 h-12 flex items-center justify-center flex-shrink-0 text-cyan-400"><i class="fa-solid fa-tv text-xl"></i></div>
-                    <div>
-                        <h3 class="text-white font-bold mb-1">Akıllı Tahta</h3>
-                        <p>Şifresizdir. Sınıftaki büyük ekrana yansıtın. Canlı müzakereler, oylama durumu (gizlenebilir) ve konuşmacı bilgisi burada görünür.</p>
-                    </div>
-                </div>
-
-            </div>
-            <div class="bg-slate-900 p-4 text-center border-t border-slate-700">
-                <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-lg font-bold">Anlaşıldı</button>
-            </div>
         </div>
     </div>
 
     <!-- 2. ÖĞRENCİ ARAYÜZÜ -->
-    <div id="app-interface" class="hidden flex-col h-full w-full bg-slate-100 text-slate-800 absolute inset-0">
-        <header class="bg-slate-900 text-white p-3 flex justify-between items-center shadow-lg z-30 flex-shrink-0 h-14">
-            <div>
-                <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Dosya No: 2025/456</span>
-                <span id="header-user-name" class="font-bold text-yellow-400 text-xs">Jüri Üyesi</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="bg-slate-800 px-3 py-1 rounded-full border border-yellow-500/30">
-                    <span class="text-[10px] text-yellow-500 font-black"><i class="fa-solid fa-star mr-1"></i><span id="my-score">0</span> Puan</span>
-                </div>
-                <button onclick="logoutUser()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-power-off text-xs"></i></button>
-            </div>
+    <div id="app-interface" class="hidden absolute inset-0 z-10 flex flex-col bg-slate-100">
+        <header class="bg-slate-900 text-white p-3 flex justify-between items-center shadow-lg h-16 flex-shrink-0 relative z-30">
+            <div><span class="text-[9px] text-slate-400 uppercase tracking-wider block">Dosya No: 2025/456</span><span id="header-user-name" class="font-bold text-yellow-400 text-xs">Jüri Üyesi</span></div>
+            <div class="flex items-center gap-3"><div class="bg-slate-800 px-3 py-1 rounded-full border border-yellow-500/30 flex items-center gap-1"><i class="fa-solid fa-star text-yellow-500 text-xs"></i><span id="my-score" class="text-xs font-bold text-white">0</span></div><button onclick="logoutUser()" class="text-slate-400 hover:text-red-400 p-2"><i class="fa-solid fa-right-from-bracket"></i></button></div>
         </header>
 
-        <button onclick="requestSpeech()" class="fixed bottom-24 left-4 z-40 bg-yellow-500 hover:bg-yellow-400 text-slate-900 p-4 rounded-full shadow-2xl transition-transform active:scale-90 border-4 border-white/20 flex flex-col items-center justify-center w-16 h-16 shadow-yellow-500/20">
-            <i class="fa-solid fa-hand text-xl"></i>
-            <span class="text-[8px] font-bold uppercase mt-1">Söz İste</span>
-        </button>
+        <button onclick="requestSpeech()" class="fixed bottom-24 left-4 z-40 bg-yellow-500 text-slate-900 p-4 rounded-full shadow-xl w-16 h-16 flex flex-col items-center justify-center border-4 border-white/20 active:scale-90 transition"><i class="fa-solid fa-hand text-xl"></i><span class="text-[9px] font-bold mt-1">SÖZ</span></button>
 
-        <div id="student-quiz-modal" class="hidden fixed inset-0 z-50 bg-slate-900/95 flex flex-col items-center justify-center p-6 quiz-enter text-white">
-            <div class="w-full max-w-md">
-                <div class="flex justify-between items-center mb-6"><span class="bg-red-600 px-3 py-1 rounded text-xs font-bold animate-pulse">CANLI SORU</span><span class="text-yellow-400 font-bold"><i class="fa-solid fa-clock mr-1"></i>Cevapla!</span></div>
-                <h2 id="quiz-question-text" class="text-2xl font-bold text-center mb-8 leading-tight">Soru Geliyor...</h2>
-                <div id="quiz-options-container" class="grid grid-cols-1 gap-4 w-full"></div>
-                <p id="quiz-status-text" class="text-center mt-6 text-slate-400 text-sm hidden">Cevabınız gönderildi, sonuç bekleniyor...</p>
-            </div>
-        </div>
-
-        <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-20 bg-slate-200">
+        <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-20 bg-slate-200 text-slate-800">
             
-            <div id="tab-live" class="tab-content p-4 space-y-4 h-full flex flex-col">
-                <div class="bg-white p-4 rounded-2xl shadow-lg border-l-4 border-blue-500">
-                    <h3 class="font-bold text-slate-700 mb-2 text-sm">Vicdani Kanaat İbresi</h3>
-                    <input type="range" id="sentiment-slider" min="0" max="100" value="50" step="10" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                    <div class="flex justify-between text-[10px] font-bold mt-2 uppercase tracking-wider"><span class="text-red-500">Davacı</span><span class="text-green-600">Sanık</span></div>
-                    <p id="sentiment-status" class="text-center text-[10px] font-mono text-slate-400 mt-2 h-4"></p>
+            <div id="tab-live" class="tab-content active p-4 space-y-4">
+                <div class="bg-white p-6 rounded-2xl shadow-lg border-l-4 border-blue-600">
+                    <h3 class="font-bold text-slate-800 mb-4 text-center text-sm">VİCDANİ KANAAT</h3>
+                    <input type="range" id="sentiment-slider" min="0" max="100" value="50" step="10" class="w-full h-4 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    <div class="flex justify-between text-[10px] font-bold mt-2 px-1"><span class="text-red-600">DAVACI</span><span class="text-green-600">SANIK</span></div>
+                    <p id="sentiment-status" class="text-center text-[10px] text-slate-400 mt-2 h-4"></p>
                 </div>
             </div>
             
-            <div id="tab-evidence" class="tab-content hidden p-4 space-y-5">
-                <div class="flex items-center justify-between border-b border-slate-300 pb-2"><span class="text-xs font-black text-slate-600 uppercase tracking-widest">Delil Klasörü</span><i class="fa-solid fa-folder-closed text-slate-400"></i></div>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200"><div class="bg-slate-800 px-3 py-2 flex justify-between items-center"><h4 class="text-xs font-bold text-white"><i class="fa-solid fa-file-video text-red-400 mr-2"></i> DELİL 1: Olay Yeri Kaydı</h4><span class="text-[10px] bg-red-500/20 text-red-200 px-2 py-0.5 rounded">KRİMİNAL</span></div><div class="aspect-video bg-black relative"><video controls playsinline class="w-full h-full object-contain" poster="https://placehold.co/600x400/000000/FFFFFF?text=Video+Yükleniyor..."><source src="olay_yeri.mp4" type="video/mp4">Desteklenmiyor</video></div><div class="p-3 official-doc"><p class="text-[10px] text-slate-700 font-serif leading-snug"><span class="font-bold">Tespit:</span> Olay mahalinde kırık vazo parçaları.</p></div></div>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP1.png')"><div class="flex items-center p-3 border-b border-slate-100"><i class="fa-brands fa-whatsapp text-2xl text-green-500 mr-3"></i><div><h4 class="text-xs font-bold text-slate-800">DELİL 2: İletişim (Başlangıç)</h4><p class="text-[10px] text-slate-500">Ekonomik tartışma.</p></div></div></div>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP2.png')"><div class="flex items-center p-3 border-b border-slate-100"><i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 mr-3"></i><div><h4 class="text-xs font-bold text-slate-800">DELİL 3: İletişim (Tehdit)</h4><p class="text-[10px] text-slate-500">Tehdit içerikli mesajlar.</p></div></div></div>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200"><div class="bg-slate-100 px-3 py-2 border-b border-slate-200"><h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-secret text-indigo-500 mr-2"></i> DELİL 4: Tanık İfadesi</h4></div><div class="p-4 official-doc relative"><div class="absolute top-2 right-2 border-2 border-red-800/30 text-red-800/30 text-[10px] font-black p-1 rotate-12 rounded stamp">GİZLİ</div><p class="text-[11px] text-slate-700 font-serif leading-relaxed text-justify italic">"Olay gecesi saat 23:00 sularında üst kattan bağırışmalar ve büyük bir cam kırılma sesi duydum." (Komşu Zeynep K.)</p></div></div>
+            <div id="tab-evidence" class="tab-content hidden p-4 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-300 pb-2"><span class="text-xs font-black text-slate-600 uppercase">DELİL KLASÖRÜ</span><i class="fa-solid fa-folder-open text-yellow-500"></i></div>
+                <!-- Video -->
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="bg-slate-800 px-3 py-2 text-white text-xs font-bold flex justify-between"><span class="flex items-center gap-2"><i class="fa-solid fa-video text-red-400"></i> Olay Yeri</span><button onclick="projectEvidence('video')" class="text-[9px] bg-cyan-600 px-2 rounded hover:bg-cyan-500">TAHTAYA YANSIT</button></div>
+                    <video controls playsinline class="w-full h-48 bg-black object-contain"><source src="olay_yeri.mp4" type="video/mp4"></video>
+                </div>
+                <!-- Resim 1 -->
+                <div class="bg-white p-3 rounded-xl shadow-sm border flex items-center justify-between">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="openImage('WP1.png')"><i class="fa-brands fa-whatsapp text-2xl text-green-600"></i><div><h4 class="text-xs font-bold">Mesaj Kaydı 1</h4><p class="text-[10px] text-slate-500">Başlangıç</p></div></div>
+                    <button onclick="projectEvidence('WP1.png')" class="text-xs text-cyan-600 font-bold border border-cyan-600 px-2 py-1 rounded hover:bg-cyan-50">YANSIT</button>
+                </div>
+                <!-- Resim 2 -->
+                <div class="bg-white p-3 rounded-xl shadow-sm border flex items-center justify-between">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="openImage('WP2.png')"><i class="fa-solid fa-triangle-exclamation text-2xl text-red-600"></i><div><h4 class="text-xs font-bold">Mesaj Kaydı 2</h4><p class="text-[10px] text-slate-500">Tehdit</p></div></div>
+                    <button onclick="projectEvidence('WP2.png')" class="text-xs text-cyan-600 font-bold border border-cyan-600 px-2 py-1 rounded hover:bg-cyan-50">YANSIT</button>
+                </div>
+                <div class="text-center mt-4"><button onclick="projectEvidence(null)" class="text-xs text-red-500 font-bold underline">Yansıtmayı Durdur</button></div>
             </div>
 
-            <div id="tab-chat" class="tab-content hidden flex flex-col h-full"><div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto"></div><div class="bg-white p-2 border-t flex gap-2 items-center"><input type="text" id="chat-input" class="flex-1 bg-slate-100 rounded-full px-4 py-2 text-sm" placeholder="Yaz..."><button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full"><i class="fa-solid fa-paper-plane"></i></button></div></div>
-            <div id="tab-comm" class="tab-content hidden p-4"><div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100"><h3 class="font-bold text-indigo-900 text-sm mb-2">Hakime Soru</h3><textarea id="question-input" rows="3" class="w-full p-2 rounded text-sm"></textarea><button onclick="sendQuestion()" class="w-full mt-2 bg-indigo-600 text-white py-2 rounded text-sm font-bold">GÖNDER</button></div></div>
-            <div id="tab-vote" class="tab-content hidden p-6 flex flex-col justify-center space-y-4"><h2 class="text-center font-bold">Karar Vakti</h2><button onclick="submitVote('SUÇLU')" class="w-full py-3 bg-red-500 text-white rounded shadow">SUÇLU</button><button onclick="submitVote('SUÇSUZ')" class="w-full py-3 bg-green-500 text-white rounded shadow">SUÇSUZ</button></div>
+            <div id="tab-chat" class="tab-content hidden flex-col h-full"><div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto pb-20"></div><div class="bg-white p-3 border-t flex gap-2 items-center safe-area-bottom sticky bottom-0"><input type="text" id="chat-input" class="flex-1 bg-slate-100 rounded-full px-4 py-3 text-sm outline-none border focus:border-blue-500" placeholder="Yaz..."><button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full shadow"><i class="fa-solid fa-paper-plane"></i></button></div></div>
+            <div id="tab-comm" class="tab-content hidden p-4"><div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 shadow-sm"><h3 class="font-bold text-indigo-900 text-sm mb-3">Hakime Soru</h3><textarea id="question-input" rows="4" class="w-full p-3 rounded-lg text-sm border border-indigo-200 focus:outline-none" placeholder="..."></textarea><button onclick="sendQuestion()" class="w-full mt-3 bg-indigo-600 text-white py-3 rounded-lg text-sm font-bold shadow">GÖNDER</button></div></div>
+            <div id="tab-vote" class="tab-content hidden p-6 flex-col justify-center space-y-6 h-full"><h2 class="text-center font-black text-2xl text-slate-800">KARAR VAKTİ</h2><button onclick="submitVote('SUÇLU')" class="w-full py-4 bg-red-600 text-white rounded-xl shadow-lg font-bold text-lg active:scale-95">SUÇLU</button><button onclick="submitVote('SUÇSUZ')" class="w-full py-4 bg-green-600 text-white rounded-xl shadow-lg font-bold text-lg active:scale-95">SUÇSUZ</button><p id="vote-status" class="text-center font-bold text-blue-600 text-sm mt-2"></p></div>
         </main>
 
-        <nav class="bg-slate-900 border-t border-slate-800 flex justify-around pb-4 pt-2 h-16 shadow-[0_-5px_10px_rgba(0,0,0,0.05)] z-40 fixed bottom-0 left-0 right-0 w-full text-[9px] text-slate-400">
-            <button onclick="switchTab('tab-live', this)" class="nav-item active flex flex-col items-center w-1/5"><i class="fa-solid fa-tower-broadcast text-lg mb-1"></i>Canlı</button>
-            <button onclick="switchTab('tab-evidence', this)" class="nav-item flex flex-col items-center w-1/5"><i class="fa-solid fa-folder-open text-lg mb-1"></i>Kanıt</button>
-            <button onclick="switchTab('tab-chat', this)" class="nav-item flex flex-col items-center w-1/5"><i class="fa-solid fa-comments text-lg mb-1"></i>Sohbet</button>
-            <button onclick="switchTab('tab-comm', this)" class="nav-item flex flex-col items-center w-1/5"><i class="fa-solid fa-question text-lg mb-1"></i>Soru</button>
-            <button onclick="switchTab('tab-vote', this)" class="nav-item flex flex-col items-center w-1/5"><i class="fa-solid fa-check-to-slot text-lg mb-1"></i>Karar</button>
+        <nav class="bg-slate-900 border-t border-slate-800 flex justify-around pb-6 pt-3 h-20 shadow-[0_-5px_15px_rgba(0,0,0,0.3)] z-50 fixed bottom-0 left-0 right-0 w-full text-[10px] text-slate-400">
+            <button onclick="switchTab('tab-live', this)" class="nav-item active flex flex-col items-center w-1/5 gap-1"><i class="fa-solid fa-tower-broadcast text-lg"></i>Canlı</button>
+            <button onclick="switchTab('tab-evidence', this)" class="nav-item flex flex-col items-center w-1/5 gap-1"><i class="fa-solid fa-folder-open text-lg"></i>Kanıt</button>
+            <button onclick="switchTab('tab-chat', this)" class="nav-item flex flex-col items-center w-1/5 gap-1"><i class="fa-solid fa-comments text-lg"></i>Sohbet</button>
+            <button onclick="switchTab('tab-comm', this)" class="nav-item flex flex-col items-center w-1/5 gap-1"><i class="fa-solid fa-question text-lg"></i>Soru</button>
+            <button onclick="switchTab('tab-vote', this)" class="nav-item flex flex-col items-center w-1/5 gap-1"><i class="fa-solid fa-check-to-slot text-lg"></i>Karar</button>
         </nav>
     </div>
 
-    <!-- 3. YÖNETİCİ PANELİ (ÖĞRETMEN & HAKİM) -->
-    <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-[100] flex flex-col">
-        <header class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
-            <h1 class="text-xl font-bold text-yellow-400" id="admin-title">YÖNETİCİ PANELİ</h1>
-            <button onclick="location.reload()" class="bg-red-900/50 px-3 py-1 rounded text-xs hover:bg-red-900 transition">Çıkış</button>
-        </header>
-        <div class="flex border-b border-slate-700 bg-slate-800">
-            <button onclick="switchAdminTab('panel-teacher')" class="flex-1 py-3 text-sm font-bold text-slate-400 hover:text-white border-b-2 border-transparent focus:border-yellow-400 focus:text-yellow-400 admin-tab-btn hidden" id="btn-tab-teacher"><i class="fa-solid fa-chalkboard-user mr-2"></i>SINIF YÖNETİMİ</button>
-            <button onclick="switchAdminTab('panel-judge')" class="flex-1 py-3 text-sm font-bold text-slate-400 hover:text-white border-b-2 border-transparent focus:border-yellow-400 focus:text-yellow-400 admin-tab-btn" id="btn-tab-judge"><i class="fa-solid fa-gavel mr-2"></i>DURUŞMA YÖNETİMİ</button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4 bg-slate-900">
-            <div id="panel-teacher" class="space-y-6 hidden">
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-green-400 uppercase mb-4"><i class="fa-solid fa-pen-to-square mr-2"></i>Canlı Soru / Anket</h3>
-                    <div class="space-y-3">
-                        <input type="text" id="quiz-q" placeholder="Soru Metni" class="w-full p-3 bg-slate-900 rounded border border-slate-600 text-white text-sm">
-                        <div class="grid grid-cols-2 gap-2"><input type="text" id="quiz-opt1" placeholder="A" class="p-2 bg-slate-900 rounded border border-slate-600 text-xs"><input type="text" id="quiz-opt2" placeholder="B" class="p-2 bg-slate-900 rounded border border-slate-600 text-xs"><input type="text" id="quiz-opt3" placeholder="C" class="p-2 bg-slate-900 rounded border border-slate-600 text-xs"><input type="text" id="quiz-opt4" placeholder="D" class="p-2 bg-slate-900 rounded border border-slate-600 text-xs"></div>
-                        <select id="quiz-correct" class="w-full p-2 bg-slate-900 rounded border border-slate-600 text-xs text-slate-400"><option value="">Doğru Cevap Seç</option><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
-                        <div class="flex gap-2"><button onclick="publishQuiz()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold text-sm">YAYINLA</button><button onclick="closeQuiz()" class="bg-red-600 text-white px-4 py-2 rounded font-bold text-sm">BİTİR</button></div>
-                    </div>
-                </div>
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700"><h3 class="text-sm font-bold text-slate-400 uppercase mb-2">Canlı Cevaplar</h3><div class="h-48 w-full"><canvas id="quizChart"></canvas></div></div>
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700"><h3 class="text-sm font-bold text-yellow-400 uppercase mb-4">Sınıf Listesi & Puanlar</h3><div class="overflow-x-auto"><table class="w-full text-sm text-left text-slate-400"><thead class="text-xs uppercase bg-slate-700 text-slate-200"><tr><th class="px-2 py-2">No</th><th class="px-2 py-2">İsim</th><th class="px-2 py-2">Puan</th><th class="px-2 py-2 text-right">İşlem</th></tr></thead><tbody id="teacher-attendance-list" class="divide-y divide-slate-700"></tbody></table></div></div>
+    <!-- QUIZ MODAL -->
+    <div id="student-quiz-modal" class="hidden fixed inset-0 z-[200] bg-slate-900/95 flex flex-col items-center justify-center p-6 quiz-enter text-white"><div class="w-full max-w-md bg-slate-800 p-6 rounded-2xl border border-slate-600"><div class="flex justify-between items-center mb-6"><span class="bg-red-600 px-3 py-1 rounded text-xs font-bold animate-pulse">CANLI SORU</span><span class="text-yellow-400 font-bold">Cevapla!</span></div><h2 id="quiz-question-text" class="text-xl font-bold text-center mb-6 leading-tight">...</h2><div id="quiz-options-container" class="grid grid-cols-1 gap-3 w-full"></div><p id="quiz-status-text" class="text-center mt-6 text-slate-400 text-sm hidden">Cevabınız alındı.</p></div></div>
+
+    <!-- 3. YÖNETİCİ PANELİ -->
+    <div id="admin-panel" class="hidden absolute inset-0 bg-slate-900 text-white z-[150] flex flex-col">
+        <header class="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800"><h1 class="text-lg font-bold text-yellow-400" id="admin-title">YÖNETİM</h1><button onclick="location.reload()" class="bg-red-900/50 px-3 py-1 rounded text-xs border border-red-800">Çıkış</button></header>
+        <div class="flex border-b border-slate-700 bg-slate-800 text-xs font-bold"><button onclick="switchAdminTab('panel-teacher')" class="flex-1 py-3 text-slate-400 border-b-2 border-transparent focus:text-yellow-400 focus:border-yellow-400 hidden" id="btn-tab-teacher">SINIF</button><button onclick="switchAdminTab('panel-judge')" class="flex-1 py-3 text-slate-400 border-b-2 border-transparent focus:text-yellow-400 focus:border-yellow-400" id="btn-tab-judge">DURUŞMA</button></div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-6">
+            <div id="panel-teacher" class="hidden space-y-6">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><h3 class="text-sm font-bold text-green-400 mb-3">Quiz Başlat</h3><input type="text" id="quiz-q" placeholder="Soru" class="w-full p-2 bg-slate-900 rounded border border-slate-600 mb-2 text-xs"><div class="grid grid-cols-2 gap-2 mb-2"><input type="text" id="quiz-opt1" placeholder="A" class="p-2 bg-slate-900 text-xs"><input type="text" id="quiz-opt2" placeholder="B" class="p-2 bg-slate-900 text-xs"><input type="text" id="quiz-opt3" placeholder="C" class="p-2 bg-slate-900 text-xs"><input type="text" id="quiz-opt4" placeholder="D" class="p-2 bg-slate-900 text-xs"></div><select id="quiz-correct" class="w-full p-2 bg-slate-900 text-xs mb-2 text-slate-400"><option value="">Doğru Cevap</option><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select><div class="flex gap-2"><button onclick="publishQuiz()" class="flex-1 bg-green-600 py-2 rounded text-xs font-bold">YAYINLA</button><button onclick="closeQuiz()" class="bg-red-600 px-4 py-2 rounded text-xs font-bold">BİTİR</button></div></div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><h3 class="text-sm font-bold text-slate-400 uppercase mb-2">Canlı Cevaplar</h3><div class="h-48 w-full"><canvas id="quizChart"></canvas></div></div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><h3 class="text-sm font-bold text-yellow-400 uppercase mb-4">Yoklama</h3><div class="overflow-x-auto"><table class="w-full text-xs text-left text-slate-400"><thead class="uppercase bg-slate-700 text-slate-200"><tr><th class="px-2 py-2">No</th><th class="px-2 py-2">İsim</th><th class="px-2 py-2">Puan</th><th class="px-2 py-2 text-right">+/-</th></tr></thead><tbody id="teacher-attendance-list" class="divide-y divide-slate-700"></tbody></table></div></div>
             </div>
-            <div id="panel-judge" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Akış Kontrol</h3>
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <button onclick="setSpeaker('Davacı Avukatı')" class="p-2 bg-blue-900/50 border border-blue-700 rounded text-blue-100 text-xs">Davacı Av.</button>
-                        <button onclick="setSpeaker('Sanık Avukatı')" class="p-2 bg-red-900/50 border border-red-700 rounded text-red-100 text-xs">Sanık Av.</button>
-                        <button onclick="setSpeaker('Sanık')" class="p-2 bg-red-900 border border-red-600 rounded text-white text-xs font-bold">SANIK (Kürsüde)</button>
-                        <button onclick="setSpeaker('Hakim')" class="p-2 bg-yellow-600 rounded text-white text-xs">Hakim</button>
-                    </div>
-                    <div class="border-t border-slate-600 pt-4 space-y-2">
-                        <div class="flex gap-2"><button onclick="startTimer(1)" class="flex-1 bg-slate-700 text-xs p-2 rounded">1dk</button><button onclick="startTimer(3)" class="flex-1 bg-slate-700 text-xs p-2 rounded">3dk</button><button onclick="stopTimer()" class="bg-red-600 text-white p-2 rounded"><i class="fa-solid fa-stop"></i></button></div>
-                        <button onclick="toggleVoteVisibility()" class="w-full bg-slate-700 p-2 rounded text-xs text-white">Oylamayı Gizle/Aç</button>
-                        <button onclick="resetSimulation()" class="w-full bg-red-900 p-3 rounded text-xs text-white border border-red-500 font-black shadow-lg hover:bg-red-800">⚠️ YENİ DAVA BAŞLAT (HER ŞEYİ SİL)</button>
-                    </div>
-                </div>
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-96 flex flex-col"><div class="flex justify-between items-center mb-4"><h3 class="text-sm font-bold text-slate-400 uppercase">Söz Hakkı (<span id="req-count">0</span>)</h3></div><div id="admin-speak-list" class="flex-1 overflow-y-auto space-y-2 pr-2"></div></div>
+            <div id="panel-judge" class="hidden space-y-6">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><h3 class="text-sm font-bold text-slate-400 mb-3">Akış Kontrolü</h3><div class="grid grid-cols-2 gap-2 mb-4"><button onclick="setSpeaker('Davacı Avukatı')" class="p-2 bg-blue-900/50 border border-blue-700 rounded text-blue-100 text-xs">Davacı Av.</button><button onclick="setSpeaker('Sanık Avukatı')" class="p-2 bg-red-900/50 border border-red-700 rounded text-red-100 text-xs">Sanık Av.</button><button onclick="setSpeaker('Sanık')" class="p-2 bg-red-900 border border-red-600 rounded text-white text-xs font-bold">SANIK</button><button onclick="setSpeaker('Hakim')" class="p-2 bg-yellow-600 rounded text-white text-xs font-bold">HAKİM</button></div><div class="flex gap-2 border-t border-slate-600 pt-3"><button onclick="toggleVoteVisibility()" class="flex-1 bg-slate-700 p-2 rounded text-xs">Oylama Gizle/Aç</button><button onclick="resetSimulation()" class="flex-1 bg-red-900 p-2 rounded text-xs border border-red-700">⚠️ SIFIRLA</button></div></div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 h-64 flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-sm font-bold text-slate-400">Söz Hakkı (<span id="req-count">0</span>)</h3></div><div id="admin-speak-list" class="flex-1 overflow-y-auto space-y-2"></div></div>
             </div>
         </div>
     </div>
 
-    <div id="admin-login-modal" class="hidden fixed inset-0 z-[110] bg-black/90 flex items-center justify-center p-4">
-        <form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700 relative z-[120]">
-            <h3 class="text-xl font-bold text-white mb-4" id="login-role-title">Giriş Yap</h3>
-            <input type="password" id="admin-pass" placeholder="Şifre" class="w-full p-3 bg-slate-900 border border-slate-600 rounded mb-4 text-white">
-            <div class="flex gap-2"><button type="button" onclick="document.getElementById('admin-login-modal').classList.add('hidden')" class="w-1/2 bg-slate-700 text-white py-2 rounded">İptal</button><button type="submit" class="w-1/2 bg-yellow-500 text-black font-bold py-2 rounded">Giriş</button></div>
-        </form>
-    </div>
+    <!-- 4. AKILLI TAHTA MODU -->
+    <div id="projector-panel" class="hidden absolute inset-0 bg-slate-900 text-white z-[150] overflow-hidden flex flex-col p-6 relative">
+        <!-- Delil Yansıtma Katmanı -->
+        <div id="evidence-overlay" class="hidden absolute inset-0 z-[300] bg-black flex items-center justify-center">
+            <button onclick="closeEvidenceOverlay()" class="absolute top-4 right-4 text-white bg-red-600 px-4 py-2 rounded font-bold z-[310]">KAPAT</button>
+            <div id="evidence-content" class="w-full h-full flex items-center justify-center p-4"></div>
+        </div>
 
-    <!-- AKILLI TAHTA MODU -->
-    <div id="projector-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-50 overflow-hidden flex flex-col p-6 relative">
-        <div id="notification-area" class="absolute top-24 right-6 w-96 z-[100] space-y-3 pointer-events-none"></div>
+        <div id="notification-area" class="absolute top-24 right-6 w-96 z-[200] space-y-3 pointer-events-none"></div>
         <header class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6">
-            <div class="flex items-center gap-6">
-                <div id="current-speaker-box" class="bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-yellow-400 shadow-lg"><span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">KÜRSÜDEKİ KONUŞMACI</span><h2 id="current-speaker-name" class="text-2xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-microphone-lines text-yellow-400 animate-pulse"></i><span id="speaker-text">Hakim</span></h2></div>
-                <div id="timer-box" class="hidden bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-red-500 shadow-lg flex flex-col items-center justify-center w-32"><span class="text-[10px] text-slate-400 uppercase tracking-widest">SÜRE</span><span id="timer-display" class="text-3xl font-mono font-bold text-red-400">00:00</span></div>
-            </div>
-            <div class="text-right"><h1 class="text-3xl font-bold text-yellow-400 tracking-wider">ADALET SİM.</h1><div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div></div>
+            <div class="flex items-center gap-6"><div id="current-speaker-box" class="bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-yellow-400 shadow-lg"><span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">KÜRSÜDEKİ KONUŞMACI</span><h2 id="current-speaker-name" class="text-2xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-microphone-lines text-yellow-400 animate-pulse"></i><span id="speaker-text">Hakim</span></h2></div></div>
+            <div class="text-right"><h1 class="text-3xl font-bold text-yellow-400 tracking-wider drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">ADALET SİM.</h1><div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div></div>
         </header>
         <div class="flex-1 grid grid-cols-12 gap-6">
             <div class="col-span-7 flex flex-col gap-4">
                 <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl h-full flex flex-col justify-center items-center">
                     <h2 class="text-lg font-bold text-slate-400 uppercase mb-8">Vicdani Kanaat</h2>
-                    <!-- Fix: İbre Arka Planı Düzeltildi -->
-                    <div class="relative w-full h-12 bg-slate-700 rounded-full mb-4 overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-r from-red-600 via-slate-600 to-green-600 opacity-50"></div>
-                        <div id="proj-sentiment-marker" class="absolute top-0 w-2 h-full bg-white shadow-lg transition-all duration-700" style="left: 50%;"></div>
-                    </div>
+                    <div class="relative w-full h-12 bg-slate-700 rounded-full mb-4 overflow-hidden"><div class="absolute inset-0 bg-gradient-to-r from-red-600 via-slate-600 to-green-600 opacity-50"></div><div id="proj-sentiment-marker" class="absolute top-0 w-2 h-full bg-white shadow-lg transition-all duration-700" style="left: 50%;"></div></div>
                     <div class="flex justify-between w-full font-bold px-2 mt-2"><span class="text-red-500">DAVACI</span><span class="text-green-500">SANIK</span></div>
                 </div>
             </div>
             <div class="col-span-5 flex flex-col gap-4">
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden h-1/2">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase mb-4 text-center">Oylama Durumu</h2>
+                    <div id="vote-blind-overlay" class="absolute inset-0 z-10 bg-slate-800/95 flex flex-col items-center justify-center hidden"><i class="fa-solid fa-eye-slash text-4xl text-slate-600 mb-2"></i><h3 class="text-lg font-bold text-white">GİZLİ</h3></div>
+                    <div id="vote-content" class="space-y-4 transition-all">
+                        <div><div class="flex justify-between mb-1"><span class="text-sm font-bold text-red-500">SUÇLU</span><span id="proj-vote-guilty" class="text-white font-bold text-sm">0</span></div><div class="h-6 bg-slate-700 rounded-full overflow-hidden border border-slate-600"><div id="proj-bar-guilty" class="h-full bg-red-600 transition-all duration-1000 shadow-[0_0_10px_red]" style="width: 0%"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-sm font-bold text-green-500">SUÇSUZ</span><span id="proj-vote-notguilty" class="text-white font-bold text-sm">0</span></div><div class="h-6 bg-slate-700 rounded-full overflow-hidden border border-slate-600"><div id="proj-bar-notguilty" class="h-full bg-green-600 transition-all duration-1000 shadow-[0_0_10px_green]" style="width: 0%"></div></div></div>
+                    </div>
+                    <div id="proj-final-verdict" class="mt-4 text-center text-2xl font-black tracking-widest hidden animate-pulse">KARAR: BEKLENİYOR</div>
+                </div>
                 <div class="bg-slate-800 rounded-2xl border border-slate-700 h-1/2 flex flex-col overflow-hidden relative"><div class="bg-slate-700/50 p-2 border-b border-slate-600 flex justify-between items-center"><h2 class="text-xs font-bold text-yellow-400 uppercase pl-2">💬 Müzakere</h2></div><div id="proj-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto flex flex-col-reverse"></div></div>
-                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 h-1/2 flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-400 uppercase">YOKLAMA</h3><button onclick="location.reload()" class="text-[10px] text-slate-500"><i class="fa-solid fa-rotate"></i></button></div><div class="flex-1 overflow-y-auto no-scrollbar pr-1"><div id="proj-seat-grid" class="grid grid-cols-7 gap-1.5 content-start"></div></div></div>
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 h-1/3 flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-400 uppercase">YOKLAMA</h3><button onclick="location.reload()" class="text-[10px] text-slate-500"><i class="fa-solid fa-rotate"></i></button></div><div class="flex-1 overflow-y-auto no-scrollbar pr-1"><div id="proj-seat-grid" class="grid grid-cols-7 gap-1.5 content-start"></div></div></div>
             </div>
         </div>
     </div>
 
-    <div id="image-modal" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')"><img id="modal-img" src="" class="max-h-full max-w-full rounded"></div>
+    <!-- Login Modal -->
+    <div id="admin-login-modal" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4"><form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700 relative"><h3 class="text-xl font-bold text-white mb-4" id="login-role-title">Giriş Yap</h3><input type="password" id="admin-pass" placeholder="Şifre" class="w-full p-3 bg-slate-900 border border-slate-600 rounded mb-4 text-white outline-none focus:border-blue-500"><div class="flex gap-2"><button type="button" onclick="document.getElementById('admin-login-modal').classList.add('hidden')" class="w-1/2 bg-slate-700 text-white py-2 rounded font-bold">İptal</button><button type="submit" class="w-1/2 bg-blue-600 text-white font-bold py-2 rounded">Giriş</button></div></form></div>
+    <!-- Image Modal -->
+    <div id="image-modal" class="hidden fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')"><img id="modal-img" src="" class="max-h-full max-w-full rounded"></div>
+    <!-- Kılavuz -->
+    <div id="help-modal" class="hidden fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-4"><div class="bg-slate-800 w-full max-w-lg rounded-2xl border border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.2)] p-6"><h2 class="text-xl font-bold text-purple-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-book"></i> Kullanma Kılavuzu</h2><ul class="space-y-3 text-sm text-slate-300"><li>👩‍🎓 <strong>Öğrenci:</strong> Koltuk seç, kanıtları incele, tartış.</li><li>👨‍🏫 <strong>Öğretmen (admin):</strong> Quiz yap, "Yansıt" ile delil göster.</li><li>⚖️ <strong>Hakim (1234):</strong> Duruşmayı yönet.</li></ul><button onclick="document.getElementById('help-modal').classList.add('hidden')" class="mt-6 w-full bg-purple-600 hover:bg-purple-500 text-white py-2 rounded font-bold">Tamam</button></div></div>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac006df3325ec6afd" };
@@ -293,38 +231,26 @@
         const db = firebase.firestore();
 
         const SEATS='sim_seats', VOTES='sim_votes', CHAT='sim_chat', SPEAK_REQ='sim_speak_requests', QUIZZES='sim_quizzes', SCORES='sim_scores', SETTINGS='sim_settings', NOTIFICATIONS='sim_notifications';
-        let currentUser = null, loginRole = '', quizChart = null, timerInterval = null, initialLoadComplete = false;
-
-        const neonColors = [
-            'text-pink-400 drop-shadow-[0_0_5px_rgba(244,114,182,0.8)]',
-            'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]',
-            'text-lime-400 drop-shadow-[0_0_5px_rgba(163,230,53,0.8)]',
-            'text-fuchsia-400 drop-shadow-[0_0_5px_rgba(232,121,249,0.8)]',
-            'text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]'
-        ];
-        function getNeonColor(name) {
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-            return neonColors[Math.abs(hash) % neonColors.length];
-        }
+        let currentUser=null, loginRole='', quizChart=null, initialLoadComplete=false;
+        const neonColors = ['neon-pink', 'neon-cyan', 'neon-lime', 'neon-amber'];
+        function getNeonColor(name) { return neonColors[name.length % neonColors.length]; }
 
         document.addEventListener('DOMContentLoaded', () => {
             initSettings(); generateSeats('koltuk-grid', true); checkSession();
-            const ctx = document.getElementById('quizChart').getContext('2d');
-            quizChart = new Chart(ctx, { type: 'bar', data: { labels: ['A', 'B', 'C', 'D'], datasets: [{ label: 'Cevaplar', data: [0,0,0,0], backgroundColor: ['#ef4444', '#3b82f6', '#eab308', '#22c55e'] }] }, options: { scales: { y: { beginAtZero: true, ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } }, plugins: { legend: { display: false } } } });
+            if(document.getElementById('quizChart')) {
+                const ctx = document.getElementById('quizChart').getContext('2d');
+                quizChart = new Chart(ctx, { type: 'bar', data: { labels: ['A', 'B', 'C', 'D'], datasets: [{ label: 'Cevaplar', data: [0,0,0,0], backgroundColor: ['#ef4444', '#3b82f6', '#eab308', '#22c55e'] }] }, options: { scales: { y: { beginAtZero: true, ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } }, plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false } });
+            }
         });
 
         async function initSettings() {
-            const doc = await db.collection(SETTINGS).doc('admin_auth').get();
-            if(!doc.exists) db.collection(SETTINGS).doc('admin_auth').set({password:'1234'}); 
-            const tDoc = await db.collection(SETTINGS).doc('teacher_auth').get();
-            if(!tDoc.exists) db.collection(SETTINGS).doc('teacher_auth').set({password:'admin'}); 
             const flow = await db.collection(SETTINGS).doc('flow').get();
-            if(!flow.exists) db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true, timer_end: null});
+            if(!flow.exists) db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true, active_evidence: null});
         }
 
+        // --- GİRİŞ & KOLTUK ---
         function generateSeats(elId, clickable) {
-            const grid = document.getElementById(elId); grid.innerHTML = '';
+            const grid = document.getElementById(elId); if(!grid) return; grid.innerHTML = '';
             db.collection(SEATS).onSnapshot(snap => {
                 const occupied = {}; snap.forEach(doc => occupied[doc.id] = doc.data().name);
                 grid.innerHTML = '';
@@ -333,24 +259,24 @@
                     const isTaken = occupied[i];
                     if(clickable) {
                         const btn = document.createElement('button');
-                        btn.className = `w-full aspect-square rounded-lg font-bold text-xs flex items-center justify-center ${isTaken ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 text-slate-300'}`;
+                        btn.className = `w-full aspect-square rounded-lg font-bold text-xs flex items-center justify-center border border-slate-700 transition ${isTaken ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 text-slate-300'}`;
                         btn.textContent = i; if(!isTaken) btn.onclick = () => selectSeat(i); grid.appendChild(btn);
                     } else {
                         div.className = `w-full aspect-square rounded border flex items-center justify-center p-0.5 text-center relative overflow-hidden ${isTaken ? 'bg-green-600 border-green-400 shadow' : 'bg-slate-800 border-slate-700 opacity-40'}`;
                         div.innerHTML = isTaken ? `<span class="text-[7px] font-bold text-white leading-none break-words line-clamp-2">${occupied[i]}</span>` : `<span class="text-slate-600 text-[9px] font-mono">${i}</span>`;
-                        div.title = isTaken ? occupied[i] : "";
                         grid.appendChild(div);
                     }
                 }
-                if(document.getElementById('proj-jury-count')) document.getElementById('proj-jury-count').textContent = `${Object.keys(occupied).length}/35`;
+                const countEl = document.getElementById('proj-jury-count');
+                if(countEl) countEl.textContent = `${Object.keys(occupied).length}/35`;
             });
         }
 
         async function selectSeat(id) {
             const name = document.getElementById('juri-ad').value.trim();
-            if(name.length < 3) return alert("İsim giriniz.");
+            if(name.length < 3) return alert("Lütfen adınızı giriniz.");
             await db.collection(SEATS).doc(String(id)).set({name, seatId: id, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
-            await db.collection(SCORES).doc(String(id)).set({val: 0}); 
+            await db.collection(SCORES).doc(String(id)).set({val: 0});
             localStorage.setItem('seatId', id); localStorage.setItem('name', name);
             enterApp(name, id);
         }
@@ -367,28 +293,32 @@
             initStudentListeners();
         }
 
+        window.switchTab = function(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); 
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none'); 
+            document.getElementById(tabId).style.display = 'flex'; 
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+        }
+
+        // --- ÖĞRENCİ ---
         function initStudentListeners() {
             db.collection(SCORES).doc(String(currentUser.seatId)).onSnapshot(doc => { if(doc.exists) document.getElementById('my-score').textContent = doc.data().val; });
             db.collection(QUIZZES).where('active', '==', true).onSnapshot(snap => {
                 const modal = document.getElementById('student-quiz-modal');
                 if(!snap.empty) {
                     const data = snap.docs[0].data();
-                    document.getElementById('quiz-sound').play().catch(()=>{}); 
+                    document.getElementById('quiz-sound').play().catch(()=>{});
                     document.getElementById('quiz-question-text').textContent = data.question;
-                    const opts = document.getElementById('quiz-options-container');
-                    opts.innerHTML = '';
+                    const opts = document.getElementById('quiz-options-container'); opts.innerHTML = '';
                     data.options.forEach((opt, idx) => {
                         const btn = document.createElement('button');
                         btn.className = "w-full p-4 bg-slate-800 hover:bg-yellow-500 hover:text-slate-900 rounded-xl border border-slate-600 text-left font-bold text-lg transition";
-                        btn.textContent = opt;
-                        btn.onclick = () => submitAnswer(snap.docs[0].id, idx);
-                        opts.appendChild(btn);
+                        btn.textContent = opt; btn.onclick = () => submitAnswer(snap.docs[0].id, idx); opts.appendChild(btn);
                     });
                     modal.classList.remove('hidden');
                 } else {
-                    modal.classList.add('hidden');
-                    document.getElementById('quiz-status-text').classList.add('hidden');
-                    document.getElementById('quiz-options-container').classList.remove('hidden');
+                    modal.classList.add('hidden'); document.getElementById('quiz-status-text').classList.add('hidden'); document.getElementById('quiz-options-container').classList.remove('hidden');
                 }
             });
             document.getElementById('sentiment-slider').addEventListener('input', (e) => { setTimeout(() => db.collection('sim_sentiment').doc(String(currentUser.seatId)).set({val: parseInt(e.target.value), name: currentUser.name}), 300); });
@@ -401,47 +331,37 @@
                 db.collection(SCORES).doc(String(currentUser.seatId)).update({ val: firebase.firestore.FieldValue.increment(10) });
                 alert("DOĞRU! +10 PUAN");
             } else { alert("Yanlış Cevap."); }
-            document.getElementById('quiz-options-container').classList.add('hidden');
-            document.getElementById('quiz-status-text').classList.remove('hidden');
+            document.getElementById('quiz-options-container').classList.add('hidden'); document.getElementById('quiz-status-text').classList.remove('hidden');
         }
 
-        function openAdminLogin(role) {
+        window.requestSpeech = function() { if(!currentUser) return; if(confirm("Söz hakkı iste?")) db.collection(SPEAK_REQ).add({author: currentUser.name, seatId: currentUser.seatId, timestamp: firebase.firestore.FieldValue.serverTimestamp()}); }
+        window.sendChat = function() { const txt = document.getElementById('chat-input').value; if(txt) { db.collection(CHAT).add({text:txt, author:currentUser.name, seatId:currentUser.seatId, timestamp: firebase.firestore.FieldValue.serverTimestamp()}); document.getElementById('chat-input').value=''; } }
+        window.submitVote = function(vote) { if(confirm("Kararınız kesin mi?")) { db.collection(VOTES).doc(String(currentUser.seatId)).set({vote}); document.getElementById('vote-status').textContent = "Oyunuz: " + vote; } }
+
+        // --- YÖNETİCİ ---
+        window.openAdminLogin = function(role) {
             loginRole = role;
             document.getElementById('login-role-title').textContent = role === 'teacher' ? 'Öğretmen Girişi' : 'Hakim Girişi';
             document.getElementById('admin-login-modal').classList.remove('hidden');
         }
 
-        async function handleAdminLogin(e) {
-            e.preventDefault();
-            const pass = document.getElementById('admin-pass').value;
-            const collectionName = loginRole === 'teacher' ? 'teacher_auth' : 'admin_auth';
-            const doc = await db.collection(SETTINGS).doc(collectionName).get();
-            
-            if(doc.data().password === pass) {
+        window.handleAdminLogin = function(e) {
+            e.preventDefault(); const pass = document.getElementById('admin-pass').value;
+            let isValid = false;
+            if (loginRole === 'teacher' && pass === 'admin') isValid = true;
+            if (loginRole === 'judge' && pass === '1234') isValid = true;
+            if(isValid) {
                 document.getElementById('admin-login-modal').classList.add('hidden');
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-title').textContent = loginRole === 'teacher' ? 'ÖĞRETMEN PANELİ' : 'HAKİM PANELİ';
-                
-                if (loginRole === 'judge') {
-                    document.getElementById('btn-tab-teacher').classList.add('hidden');
-                    document.getElementById('btn-tab-judge').classList.remove('hidden');
-                    switchAdminTab('panel-judge');
-                    initJudgePanel();
-                } else if (loginRole === 'teacher') {
-                    document.getElementById('btn-tab-teacher').classList.remove('hidden');
-                    document.getElementById('btn-tab-judge').classList.remove('hidden');
-                    switchAdminTab('panel-teacher');
-                    initTeacherPanel();
-                    initJudgePanel();
-                }
+                if (loginRole === 'judge') { document.getElementById('btn-tab-teacher').classList.add('hidden'); document.getElementById('btn-tab-judge').classList.remove('hidden'); switchAdminTab('panel-judge'); initJudgePanel(); }
+                else { document.getElementById('btn-tab-teacher').classList.remove('hidden'); document.getElementById('btn-tab-judge').classList.remove('hidden'); switchAdminTab('panel-teacher'); initTeacherPanel(); initJudgePanel(); }
             } else { alert("Hatalı Şifre!"); }
         }
 
-        function switchAdminTab(panelId) {
-            document.getElementById('panel-teacher').classList.add('hidden');
-            document.getElementById('panel-judge').classList.add('hidden');
-            document.getElementById(panelId).classList.remove('hidden');
+        window.switchAdminTab = function(panelId) {
+            document.getElementById('panel-teacher').classList.add('hidden'); document.getElementById('panel-judge').classList.add('hidden'); document.getElementById(panelId).classList.remove('hidden');
             document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('text-yellow-400', 'border-yellow-400'));
             if(panelId === 'panel-teacher') document.getElementById('btn-tab-teacher').classList.add('text-yellow-400', 'border-yellow-400');
             else document.getElementById('btn-tab-judge').classList.add('text-yellow-400', 'border-yellow-400');
@@ -450,80 +370,90 @@
         function initTeacherPanel() {
             db.collection(SEATS).onSnapshot(async (snap) => {
                 const list = document.getElementById('teacher-attendance-list'); list.innerHTML = '';
-                const scoreSnap = await db.collection(SCORES).get();
-                const scores = {}; scoreSnap.forEach(d => scores[d.id] = d.data().val);
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    list.innerHTML += `<tr class="bg-slate-800 border-b border-slate-700"><td class="px-2 py-2">${d.seatId}</td><td class="px-2 py-2 font-bold text-white">${d.name}</td><td class="px-2 py-2 text-center text-yellow-400 font-mono">${scores[d.seatId] || 0}</td><td class="px-2 py-2 text-right"><button onclick="modScore('${d.seatId}', 5)" class="text-green-500 mr-2"><i class="fa-solid fa-plus"></i></button><button onclick="modScore('${d.seatId}', -5)" class="text-red-500"><i class="fa-solid fa-minus"></i></button></td></tr>`;
-                });
+                const scoreSnap = await db.collection(SCORES).get(); const scores = {}; scoreSnap.forEach(d => scores[d.id] = d.data().val);
+                snap.forEach(doc => { const d = doc.data(); list.innerHTML += `<tr class="bg-slate-800 border-b border-slate-700"><td class="px-2 py-2">${d.seatId}</td><td class="px-2 py-2 font-bold text-white">${d.name}</td><td class="px-2 py-2 text-center text-yellow-400 font-mono">${scores[d.seatId] || 0}</td><td class="px-2 py-2 text-right"><button onclick="modScore('${d.seatId}', 5)" class="text-green-500 mr-2"><i class="fa-solid fa-plus"></i></button><button onclick="modScore('${d.seatId}', -5)" class="text-red-500"><i class="fa-solid fa-minus"></i></button></td></tr>`; });
             });
             db.collection(QUIZZES).where('active', '==', true).onSnapshot(snap => {
-                if(!snap.empty) {
+                if(!snap.empty && quizChart) {
                     db.collection('sim_answers').where('quizId', '==', snap.docs[0].id).onSnapshot(ansSnap => {
-                        const counts = [0, 0, 0, 0];
-                        ansSnap.forEach(d => { if(d.data().optionIdx >= 0) counts[d.data().optionIdx]++; });
+                        const counts = [0, 0, 0, 0]; ansSnap.forEach(d => { if(d.data().optionIdx >= 0) counts[d.data().optionIdx]++; });
                         quizChart.data.datasets[0].data = counts; quizChart.update();
                     });
                 }
             });
         }
-        function modScore(seatId, amount) { db.collection(SCORES).doc(String(seatId)).update({ val: firebase.firestore.FieldValue.increment(amount) }); }
-        function publishQuiz() {
+        window.modScore = function(seatId, amount) { db.collection(SCORES).doc(String(seatId)).update({ val: firebase.firestore.FieldValue.increment(amount) }); }
+        window.publishQuiz = function() {
             const q = document.getElementById('quiz-q').value;
-            const opts = [document.getElementById('quiz-opt1').value, document.getElementById('quiz-opt2').value, document.getElementById('quiz-opt3').value, document.getElementById('quiz-opt4').value];
+            const opts = [1,2,3,4].map(i => document.getElementById('quiz-opt'+i).value);
             const correct = document.getElementById('quiz-correct').value;
             if(!q || opts.some(x=>!x)) return alert("Eksik bilgi");
-            db.collection(QUIZZES).get().then(s => s.forEach(d => d.ref.update({active: false}))).then(() => {
+            db.collection(QUIZZES).where('active', '==', true).get().then(snap => { snap.forEach(d => d.ref.update({active: false})); }).then(() => {
                 db.collection(QUIZZES).add({ question: q, options: opts, correctOption: correct, active: true, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                 alert("Quiz Yayında!");
             });
         }
-        function closeQuiz() { db.collection(QUIZZES).where('active', '==', true).get().then(s => s.forEach(d => d.ref.update({active: false}))); alert("Kapatıldı"); }
+        window.closeQuiz = function() { db.collection(QUIZZES).where('active', '==', true).get().then(s => s.forEach(d => d.ref.update({active: false}))); alert("Kapatıldı"); }
 
         function initJudgePanel() {
             db.collection(SPEAK_REQ).orderBy('timestamp', 'asc').onSnapshot(snap => {
                 const list = document.getElementById('admin-speak-list');
-                document.getElementById('req-count').textContent = snap.size;
-                list.innerHTML = '';
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    list.innerHTML += `<div class="bg-slate-700 p-2 rounded flex justify-between items-center mb-2"><span class="text-sm">${d.author}</span><button onclick="approveSpeech('${doc.id}', '${d.author}')" class="bg-green-600 px-2 rounded text-xs">Söz Ver</button></div>`;
-                });
+                document.getElementById('req-count').textContent = snap.size; list.innerHTML = '';
+                snap.forEach(doc => { const d = doc.data(); list.innerHTML += `<div class="bg-slate-700 p-2 rounded flex justify-between items-center mb-2"><span class="text-sm">${d.author}</span><button onclick="approveSpeech('${doc.id}', '${d.author}')" class="bg-green-600 px-2 rounded text-xs">Söz Ver</button></div>`; });
             });
         }
-        function approveSpeech(id, name) {
-            db.collection('sim_notifications').add({ text: `${name} konuşabilir.`, type: 'grant', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            db.collection(SPEAK_REQ).doc(id).delete();
-            setSpeaker(name);
+        window.approveSpeech = function(id, name) {
+            db.collection(NOTIFICATIONS).add({ text: `${name} konuşabilir.`, type: 'grant', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            db.collection(SPEAK_REQ).doc(id).delete(); window.setSpeaker(name);
         }
-        function setSpeaker(name) { db.collection(SETTINGS).doc('flow').update({ current_speaker: name }); }
-        function toggleVoteVisibility() { db.collection(SETTINGS).doc('flow').get().then(d => db.collection(SETTINGS).doc('flow').update({ show_votes: !d.data().show_votes })); }
-        function startTimer(min) { const end = new Date(); end.setMinutes(end.getMinutes()+min); db.collection(SETTINGS).doc('flow').update({timer_end: firebase.firestore.Timestamp.fromDate(end)}); }
-        function stopTimer() { db.collection(SETTINGS).doc('flow').update({timer_end: null}); }
+        window.setSpeaker = function(name) { db.collection(SETTINGS).doc('flow').update({ current_speaker: name }); }
+        window.toggleVoteVisibility = function() { db.collection(SETTINGS).doc('flow').get().then(d => db.collection(SETTINGS).doc('flow').update({ show_votes: !d.data().show_votes })); }
+        
+        // --- DELİL YANSITMA (YENİ) ---
+        window.projectEvidence = function(src) {
+            db.collection(SETTINGS).doc('flow').update({ active_evidence: src });
+            alert(src ? "Tahtaya yansıtıldı." : "Yansıtma durduruldu.");
+        }
+        window.closeEvidenceOverlay = function() {
+            document.getElementById('evidence-overlay').classList.add('hidden');
+            document.getElementById('evidence-content').innerHTML = '';
+        }
 
-        function openProjectorMode() {
+        // --- PROJECTOR ---
+        window.openProjectorMode = function() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('projector-panel').classList.remove('hidden');
             initProjectorData();
         }
         function initProjectorData() {
             generateSeats('proj-seat-grid', false);
+            // Akış & Delil Dinleyici
             db.collection(SETTINGS).doc('flow').onSnapshot(doc => {
                 if(doc.exists) {
-                    const data = doc.data();
-                    document.getElementById('speaker-text').textContent = data.current_speaker;
-                    const tb = document.getElementById('timer-box');
-                    if(data.timer_end) {
-                        tb.classList.remove('hidden');
-                        if(timerInterval) clearInterval(timerInterval);
-                        timerInterval = setInterval(() => {
-                            const now = new Date().getTime(), distance = data.timer_end.toDate().getTime() - now;
-                            if (distance < 0) { clearInterval(timerInterval); document.getElementById('timer-display').textContent = "00:00"; }
-                            else { const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)), s = Math.floor((distance % (1000 * 60)) / 1000); document.getElementById('timer-display').textContent = (m<10?"0"+m:m)+":"+(s<10?"0"+s:s); }
-                        }, 1000);
-                    } else { tb.classList.add('hidden'); if(timerInterval) clearInterval(timerInterval); }
+                    const d = doc.data();
+                    const el = document.getElementById('speaker-text');
+                    if(el.textContent !== d.current_speaker) { el.textContent = d.current_speaker; document.getElementById('current-speaker-box').classList.add('speaker-change'); setTimeout(()=>document.getElementById('current-speaker-box').classList.remove('speaker-change'),1000); }
+                    
+                    const overlay = document.getElementById('vote-blind-overlay'), content = document.getElementById('vote-content');
+                    if(d.show_votes) { overlay.classList.add('hidden'); content.classList.remove('blur-overlay'); } else { overlay.classList.remove('hidden'); content.classList.add('blur-overlay'); }
+
+                    // Delil Yansıtma Kontrolü
+                    const evOverlay = document.getElementById('evidence-overlay');
+                    const evContent = document.getElementById('evidence-content');
+                    if(d.active_evidence) {
+                        evOverlay.classList.remove('hidden');
+                        if(d.active_evidence === 'video') {
+                            evContent.innerHTML = '<video src="olay_yeri.mp4" controls autoplay class="max-h-full max-w-full shadow-2xl border-4 border-white"></video>';
+                        } else {
+                            evContent.innerHTML = `<img src="${d.active_evidence}" class="max-h-full max-w-full shadow-2xl border-4 border-white">`;
+                        }
+                    } else {
+                        evOverlay.classList.add('hidden');
+                        evContent.innerHTML = '';
+                    }
                 }
             });
+            // Bildirim
             setTimeout(() => { initialLoadComplete = true; }, 2000);
             db.collection(NOTIFICATIONS).orderBy('timestamp', 'desc').limit(1).onSnapshot(snap => {
                 if(!initialLoadComplete) return;
@@ -533,693 +463,55 @@
                 const f = document.getElementById('proj-chat-feed'); f.innerHTML='';
                 s.forEach(d => {
                     const neonClass = getNeonColor(d.data().author);
-                    f.innerHTML += `<div class="bg-slate-700/80 p-2 rounded mb-2 border-l-2 border-slate-500"><b class="${neonClass} text-xs block mb-1">${d.data().author}</b><span class="text-white text-sm">${d.data().text}</span></div>`;
+                    f.innerHTML += `<div class="bg-slate-900/80 p-2 rounded mb-2 border-l-4 border-cyan-500 msg-enter"><b class="${neonClass} text-xs block mb-1 font-black tracking-wide">${d.data().author}</b><span class="text-white text-sm leading-tight">${d.data().text}</span></div>`;
                 });
             });
-            db.collection(SENTIMENT).onSnapshot(s=>{
-                let t=0, c=0; s.forEach(d=>{t+=d.data().val;c++});
-                if(c>0) document.getElementById('proj-sentiment-marker').style.left = (t/c)+"%";
+            db.collection('sim_sentiment').onSnapshot(s=>{ let t=0, c=0; s.forEach(d=>{t+=d.data().val;c++}); if(c>0) document.getElementById('proj-sentiment-marker').style.left = (t/c)+"%"; });
+            
+            // Oylama
+            db.collection(VOTES).onSnapshot(s => {
+                let g=0, ng=0; s.forEach(d => d.data().vote === 'SUÇLU' ? g++ : ng++);
+                document.getElementById('proj-vote-guilty').textContent = g;
+                document.getElementById('proj-vote-notguilty').textContent = ng;
+                const t = g + ng;
+                if(t > 0) {
+                    document.getElementById('proj-bar-guilty').style.width = (g/t*100) + "%";
+                    document.getElementById('proj-bar-notguilty').style.width = (ng/t*100) + "%";
+                }
+                const v = document.getElementById('proj-final-verdict');
+                if(g >= 18) { v.innerHTML="KARAR: <span class='text-red-500'>SUÇLU</span>"; v.classList.remove('hidden'); confetti({particleCount: 100, spread: 70, origin: { y: 0.6 }}); }
+                else if(ng >= 18) { v.innerHTML="KARAR: <span class='text-green-500'>SUÇSUZ</span>"; v.classList.remove('hidden'); confetti({particleCount: 100, spread: 70, origin: { y: 0.6 }}); }
+                else { v.classList.add('hidden'); }
             });
         }
 
         function showNotification(t,m) {
             const c=document.getElementById('notification-area'), n=document.createElement('div');
-            n.className="bg-yellow-500 text-slate-900 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 toast-enter border-4 border-white/20";
+            n.className="bg-yellow-500 text-slate-900 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 border-4 border-white/20 msg-enter";
             n.innerHTML=`<div class="bg-white w-10 h-10 rounded-full flex items-center justify-center font-bold"><i class="fa-solid fa-gavel"></i></div><div><h4 class="font-black text-lg uppercase">${t}</h4><p class="text-sm font-semibold">${m}</p></div>`;
             c.appendChild(n); setTimeout(()=>n.remove(),5000);
         }
 
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-        }
-
-        function requestSpeech() { if(!currentUser) return; if(confirm("Söz iste?")) db.collection(SPEAK_REQ).add({author: currentUser.name, seatId: currentUser.seatId, timestamp: firebase.firestore.FieldValue.serverTimestamp()}); }
-        
-        function sendChat() { 
-            const txt=document.getElementById('chat-input').value; 
-            if(txt) { 
-                db.collection(CHAT).add({text:txt, author:currentUser.name, seatId:currentUser.seatId, timestamp: firebase.firestore.FieldValue.serverTimestamp()}); 
-                document.getElementById('chat-input').value=''; 
-            } 
-        }
-        
-        function submitVote(vote){ if(confirm("Emin misiniz?")) db.collection('sim_votes').doc(String(currentUser.seatId)).set({vote}); }
-        function logoutUser() { localStorage.clear(); location.reload(); }
-        
-        async function resetSimulation() {
+        window.resetSimulation = async function() {
             if(!confirm("TÜM VERİLER SİLİNECEK. ONAYLIYOR MUSUNUZ?")) return;
-            const cols = [SEATS, VOTES, QUIZZES, SCORES, CHAT, SPEAK_REQ, NOTIFICATIONS, QUESTIONS, 'sim_answers', SENTIMENT];
+            const cols = [SEATS, VOTES, QUIZZES, SCORES, CHAT, SPEAK_REQ, NOTIFICATIONS, 'sim_answers', 'sim_sentiment'];
             try {
-                for (const col of cols) {
-                    const snap = await db.collection(col).get();
-                    if (!snap.empty) {
-                        const batch = db.batch();
-                        snap.docs.forEach(doc => batch.delete(doc.ref));
-                        await batch.commit();
-                    }
-                }
-                await db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true, timer_end: null});
-                alert("Başarıyla Sıfırlandı.");
-                location.reload();
-            } catch (error) {
-                console.error(error);
-                alert("Sıfırlama sırasında hata oluştu.");
-            }
-        }
-        
-        function openImage(src) { document.getElementById('modal-img').src=src; document.getElementById('image-modal').classList.remove('hidden'); }
-    </script>
-</body>
-</html>
-
-
-        
-        .official-doc {
-            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
-            background-size: 20px 20px;
-            background-color: #fff;
-        }
-        .stamp {
-            mask-image: url('https://www.transparenttextures.com/patterns/stardust.png'); 
-            transform: rotate(-12deg);
-            opacity: 0.8;
-        }
-        .toast-enter { animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .speaker-change { animation: flashBg 1s ease; }
-        @keyframes flashBg { 0% { background-color: #fbbf24; } 100% { background-color: #1e293b; } }
-        
-        /* Bulanıklaştırma Efekti (Gizli Oylar İçin) */
-        .blur-overlay { filter: blur(8px); pointer-events: none; user-select: none; }
-    </style>
-</head>
-<body class="flex flex-col overflow-hidden bg-slate-900 text-slate-100 h-full">
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
-
-    <audio id="alert-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-    <audio id="gavel-sound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" preload="auto"></audio>
-
-    <!-- 1. GİRİŞ EKRANI -->
-    <div id="login-screen" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center p-4 h-full w-full">
-        <div class="mb-4 text-center flex flex-col items-center w-full max-w-md">
-            <div class="bg-white p-2 rounded-full mb-3 shadow-lg shadow-yellow-500/20">
-                <img src="https://upload.wikimedia.org/wikipedia/tr/c/cc/Ataturkuni_logo.png?20200406213338" alt="Atatürk Üniversitesi" class="w-16 h-16 object-contain" onerror="this.style.display='none'">
-            </div>
-            <h2 class="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">ATATÜRK ÜNİVERSİTESİ</h2>
-            <h3 class="text-xs text-yellow-400 font-bold tracking-wide mb-2 border-b border-slate-700 pb-2">SOSYAL BİLGİLER ÖĞRETMENLİĞİ</h3>
-            <h1 class="text-3xl font-black tracking-widest text-white">ADALET SİM.</h1>
-            <p class="text-slate-500 text-[10px] italic">Hazırlayan: Muhammet Emin Aydın</p>
-        </div>
-        
-        <div class="w-full max-w-xs space-y-2 relative z-10">
-            <input type="text" id="juri-ad" placeholder="Adınız Soyadınız" class="w-full p-3 bg-slate-800 rounded-xl border border-slate-600 text-white focus:border-yellow-400 outline-none text-center text-sm shadow-inner">
-            <p id="login-msg" class="text-red-400 text-xs h-4 text-center"></p>
-        </div>
-
-        <div class="w-full max-w-md mt-2 mb-16 flex-1 overflow-y-auto no-scrollbar relative z-10 bg-slate-800/30 p-3 rounded-xl border border-slate-800">
-            <p class="text-center text-xs text-slate-400 mb-2 font-bold">Koltuk Seçimi 👇</p>
-            <div id="koltuk-grid" class="grid grid-cols-5 gap-2 pb-10"></div>
-        </div>
-        
-        <div class="fixed bottom-4 left-0 right-0 flex gap-3 w-full justify-center px-4 z-20">
-            <button onclick="openAdminModal()" class="text-slate-500 hover:text-white transition text-xs border border-slate-700 px-3 py-2 rounded bg-slate-800 shadow-lg"><i class="fa-solid fa-gavel"></i> Hakim</button>
-            <button onclick="openProjectorMode()" class="text-yellow-400 hover:text-yellow-300 transition text-xs border border-yellow-600 px-3 py-2 rounded bg-yellow-900/20 font-bold pulse-glow shadow-lg"><i class="fa-solid fa-tv"></i> Akıllı Tahta</button>
-        </div>
-    </div>
-
-    <!-- 2. JÜRİ (ÖĞRENCİ) ARAYÜZÜ -->
-    <div id="app-interface" class="hidden flex-col h-full w-full bg-slate-100 text-slate-800 absolute inset-0">
-        <header class="bg-slate-900 text-white p-3 flex justify-between items-center shadow-lg z-30 flex-shrink-0 h-14">
-            <div>
-                <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Dosya No: 2025/456</span>
-                <span id="header-user-name" class="font-bold text-yellow-400 text-xs">Jüri Üyesi</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                <button onclick="logoutUser()" class="bg-red-900/40 text-red-100 p-1.5 rounded transition border border-red-900/50"><i class="fa-solid fa-power-off text-xs"></i></button>
-            </div>
-        </header>
-
-        <button onclick="requestSpeech()" class="fixed bottom-24 left-4 z-50 bg-yellow-500 hover:bg-yellow-400 text-slate-900 p-4 rounded-full shadow-2xl transition-transform active:scale-90 border-4 border-white/20 flex flex-col items-center justify-center w-16 h-16 group">
-            <i class="fa-solid fa-hand text-xl group-hover:-translate-y-1 transition"></i>
-            <span class="text-[8px] font-bold uppercase mt-1">Söz İste</span>
-        </button>
-
-        <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-20 bg-slate-200">
-            <div id="tab-live" class="p-4 space-y-4 h-full flex flex-col">
-                <div class="bg-white p-4 rounded-2xl shadow-lg border-l-4 border-blue-500">
-                    <h3 class="font-bold text-slate-700 mb-2 text-sm">Vicdani Kanaat İbresi</h3>
-                    <p class="text-xs text-slate-500 mb-4">Tanıkları dinlerken anlık fikrinizi belirtin.</p>
-                    <div class="relative pt-2 pb-2">
-                        <input type="range" id="sentiment-slider" min="0" max="100" value="50" step="10">
-                        <div class="flex justify-between text-[10px] font-bold mt-2 uppercase tracking-wider">
-                            <span class="text-red-500">Davacı</span>
-                            <span class="text-slate-400">Nötr</span>
-                            <span class="text-green-600">Sanık</span>
-                        </div>
-                    </div>
-                    <p id="sentiment-status" class="text-center text-[10px] font-mono text-slate-400 mt-2 h-4"></p>
-                </div>
-                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                    <h4 class="text-xs font-bold text-blue-800 mb-2">Duruşma Hatırlatması</h4>
-                    <p class="text-xs text-blue-600">Lütfen 'Kanıtlar' sekmesindeki olay yeri videosunu ve bilirkişi raporlarını dikkatle inceleyiniz.</p>
-                </div>
-            </div>
-
-            <div id="tab-evidence" class="hidden p-4 space-y-5">
-                <div class="flex items-center justify-between border-b border-slate-300 pb-2"><span class="text-xs font-black text-slate-600 uppercase tracking-widest">2025/456 - Delil Klasörü</span><i class="fa-solid fa-folder-closed text-slate-400"></i></div>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200"><div class="bg-slate-800 px-3 py-2 flex justify-between items-center"><h4 class="text-xs font-bold text-white"><i class="fa-solid fa-file-video text-red-400 mr-2"></i> DELİL 1: Olay Yeri Kaydı</h4><span class="text-[10px] bg-red-500/20 text-red-200 px-2 py-0.5 rounded">KRİMİNAL</span></div><div class="aspect-video bg-black relative"><video controls playsinline class="w-full h-full object-contain" poster="https://placehold.co/600x400/000000/FFFFFF?text=Video+Yükleniyor..."><source src="olay_yeri.mp4" type="video/mp4">Video oynatılamıyor.</video></div><div class="p-3 official-doc"><p class="text-[10px] text-slate-700 font-serif leading-snug"><span class="font-bold">Tespit:</span> Olay mahalinde kırık vazo parçaları.</p></div></div>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP1.png')"><div class="flex items-center p-3 border-b border-slate-100"><i class="fa-brands fa-whatsapp text-2xl text-green-500 mr-3"></i><div><h4 class="text-xs font-bold text-slate-800">DELİL 2: İletişim (Başlangıç)</h4><p class="text-[10px] text-slate-500">Ekonomik tartışma.</p></div></div></div>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200 cursor-pointer" onclick="openImage('WP2.png')"><div class="flex items-center p-3 border-b border-slate-100"><i class="fa-solid fa-triangle-exclamation text-2xl text-red-500 mr-3"></i><div><h4 class="text-xs font-bold text-slate-800">DELİL 3: İletişim (Tehdit)</h4><p class="text-[10px] text-slate-500">Tehdit içerikli mesajlar.</p></div></div></div>
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200"><div class="bg-slate-100 px-3 py-2 border-b border-slate-200"><h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-user-secret text-indigo-500 mr-2"></i> DELİL 4: Tanık İfadesi</h4></div><div class="p-4 official-doc relative"><div class="absolute top-2 right-2 border-2 border-red-800/30 text-red-800/30 text-[10px] font-black p-1 rotate-12 rounded stamp">GİZLİ</div><p class="text-[11px] text-slate-700 font-serif leading-relaxed text-justify italic">"Olay gecesi saat 23:00 sularında üst kattan bağırışmalar ve büyük bir cam kırılma sesi duydum." (Komşu Zeynep K.)</p></div></div>
-            </div>
-
-            <div id="tab-chat" class="hidden flex flex-col h-full"><div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto"></div><div class="bg-white p-2 border-t flex gap-2 items-center"><input type="text" id="chat-input" placeholder="Müzakereye katıl..." class="flex-1 bg-slate-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"><button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:bg-blue-700 transition"><i class="fa-solid fa-paper-plane text-sm"></i></button></div></div>
-            <div id="tab-comm" class="hidden p-4"><div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100"><h3 class="font-bold text-indigo-900 text-sm mb-2">Hakime Özel Soru</h3><textarea id="question-input" rows="3" placeholder="Gizli soru..." class="w-full p-3 rounded-lg text-sm border border-indigo-200"></textarea><button onclick="sendQuestion()" class="w-full mt-2 bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold">GÖNDER</button></div></div>
-            <div id="tab-vote" class="hidden p-6 flex flex-col h-full justify-center text-center space-y-4"><h2 class="text-xl font-bold text-slate-800">Karar Vakti</h2><button onclick="submitVote('SUÇLU')" class="w-full py-4 bg-red-500 text-white rounded-xl shadow-lg font-bold text-lg">SUÇLU</button><button onclick="submitVote('SUÇSUZ')" class="w-full py-4 bg-green-500 text-white rounded-xl shadow-lg font-bold text-lg">SUÇSUZ</button><p id="vote-status" class="font-bold text-blue-600 text-sm"></p></div>
-        </main>
-
-        <nav class="bg-white border-t border-slate-200 flex justify-around pb-4 pt-2 h-16 shadow-[0_-5px_10px_rgba(0,0,0,0.05)] z-40 fixed bottom-0 left-0 right-0 w-full text-[9px]">
-            <button onclick="switchTab('tab-live', this)" class="nav-item active flex flex-col items-center w-1/5 text-slate-400"><i class="fa-solid fa-tower-broadcast text-lg mb-1"></i>Canlı</button>
-            <button onclick="switchTab('tab-evidence', this)" class="nav-item flex flex-col items-center w-1/5 text-slate-400"><i class="fa-solid fa-folder-open text-lg mb-1"></i>Kanıt</button>
-            <button onclick="switchTab('tab-chat', this)" class="nav-item flex flex-col items-center w-1/5 text-slate-400"><i class="fa-solid fa-comments text-lg mb-1"></i>Sohbet</button>
-            <button onclick="switchTab('tab-comm', this)" class="nav-item flex flex-col items-center w-1/5 text-slate-400"><i class="fa-solid fa-question text-lg mb-1"></i>Soru</button>
-            <button onclick="switchTab('tab-vote', this)" class="nav-item flex flex-col items-center w-1/5 text-slate-400"><i class="fa-solid fa-check-to-slot text-lg mb-1"></i>Karar</button>
-        </nav>
-    </div>
-
-    <!-- 3. AKILLI TAHTA MODU -->
-    <div id="projector-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-50 overflow-hidden flex flex-col p-6 relative">
-        <div id="notification-area" class="absolute top-24 right-6 w-96 z-[100] space-y-3 pointer-events-none"></div>
-
-        <header class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6">
-            <div class="flex items-center gap-6">
-                <div id="current-speaker-box" class="bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-yellow-400 shadow-lg transition-all duration-500">
-                    <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">KÜRSÜDEKİ KONUŞMACI</span>
-                    <h2 id="current-speaker-name" class="text-2xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-microphone-lines text-yellow-400 animate-pulse"></i><span id="speaker-text">Hakim</span></h2>
-                </div>
-                <!-- ZAMANLAYICI -->
-                <div id="timer-box" class="hidden bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-red-500 shadow-lg flex flex-col items-center justify-center w-32">
-                    <span class="text-[10px] text-slate-400 uppercase tracking-widest">SÜRE</span>
-                    <span id="timer-display" class="text-3xl font-mono font-bold text-red-400">00:00</span>
-                </div>
-            </div>
-            <div class="text-right"><h1 class="text-3xl font-bold text-yellow-400 tracking-wider">ADALET SİM.</h1><div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div></div>
-        </header>
-
-        <div class="flex-1 grid grid-cols-12 gap-6 overflow-hidden">
-            <div class="col-span-7 flex flex-col gap-4 h-full overflow-hidden">
-                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase mb-6 text-center">Sınıfın Vicdani Kanaati</h2>
-                    <div class="relative w-full h-10 bg-slate-700 rounded-full mb-4">
-                        <div class="absolute inset-0 rounded-full bg-gradient-to-r from-red-600 via-slate-600 to-green-600 opacity-50"></div>
-                        <div id="proj-sentiment-marker" class="absolute top-[-8px] w-2 h-14 bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)] transition-all duration-700" style="left: 50%;"><div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-2 py-0.5 rounded font-bold text-sm shadow" id="proj-sentiment-val">50%</div></div>
-                    </div>
-                    <div class="flex justify-between text-sm font-bold mt-2 px-1"><span class="text-red-500">DAVACI</span><span class="text-slate-400">TARAFSIZ</span><span class="text-green-500">SANIK</span></div>
-                </div>
-
-                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex-1 relative overflow-hidden">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase mb-4">Oylama Durumu</h2>
-                    
-                    <!-- GİZLİLİK PERDESİ -->
-                    <div id="vote-blind-overlay" class="absolute inset-0 z-10 bg-slate-800/95 flex flex-col items-center justify-center hidden">
-                        <i class="fa-solid fa-eye-slash text-4xl text-slate-600 mb-3"></i>
-                        <h3 class="text-xl font-bold text-white tracking-widest">OYLAR GİZLİ</h3>
-                        <p class="text-sm text-slate-400">Karar açıklanana kadar sonuçlar kapalıdır.</p>
-                    </div>
-
-                    <div id="vote-content" class="space-y-6 transition-all duration-500">
-                        <div><div class="flex justify-between mb-1"><span class="text-lg font-bold text-red-500">SUÇLU</span><span id="proj-vote-guilty" class="text-lg font-bold text-white">0</span></div><div class="h-6 bg-slate-700 rounded-full overflow-hidden"><div id="proj-bar-guilty" class="h-full bg-red-600 transition-all duration-1000" style="width: 0%"></div></div></div>
-                        <div><div class="flex justify-between mb-1"><span class="text-lg font-bold text-green-500">SUÇSUZ</span><span id="proj-vote-notguilty" class="text-lg font-bold text-white">0</span></div><div class="h-6 bg-slate-700 rounded-full overflow-hidden"><div id="proj-bar-notguilty" class="h-full bg-green-600 transition-all duration-1000" style="width: 0%"></div></div></div>
-                    </div>
-                    <div id="proj-final-verdict" class="mt-6 text-center text-3xl font-black tracking-widest hidden">KARAR: BEKLENİYOR</div>
-                </div>
-            </div>
-
-            <div class="col-span-5 flex flex-col gap-4 h-full overflow-hidden">
-                <div class="bg-slate-800 rounded-2xl border border-slate-700 h-1/2 flex flex-col overflow-hidden relative">
-                    <div class="bg-slate-700/50 p-2 border-b border-slate-600 flex justify-between items-center"><h2 class="text-xs font-bold text-yellow-400 uppercase pl-2">💬 Canlı Müzakere Akışı</h2><div class="animate-pulse w-2 h-2 bg-green-500 rounded-full mr-2"></div></div>
-                    <div id="proj-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto flex flex-col-reverse"></div>
-                </div>
-                <!-- JÜRİ YOKLAMASI: DİNAMİK VE KAYDIRILABİLİR -->
-                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 h-1/2 flex flex-col">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase">JÜRİ YOKLAMASI</h3>
-                        <button onclick="location.reload()" class="text-[10px] text-slate-500 hover:text-white"><i class="fa-solid fa-rotate"></i></button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto no-scrollbar pr-1">
-                        <!-- SÜTUN SAYISI 7 YAPILDI -->
-                        <div id="proj-seat-grid" class="grid grid-cols-7 gap-1.5 content-start"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- HAKİM PANELİ -->
-    <div id="admin-login-modal" class="hidden fixed inset-0 z-[110] bg-black/90 flex items-center justify-center p-4">
-        <form onsubmit="handleAdminLogin(event)" class="bg-slate-800 p-6 rounded-xl w-full max-w-sm border border-slate-700 relative z-[120]"><h3 class="text-xl font-bold text-white mb-4">Hakim Girişi</h3><input type="password" id="admin-pass" placeholder="Şifre: 1234" class="w-full p-3 bg-slate-900 border border-slate-600 rounded mb-4 text-white"><div class="flex gap-2"><button type="button" onclick="document.getElementById('admin-login-modal').classList.add('hidden')" class="w-1/2 bg-slate-700 text-white py-2 rounded">İptal</button><button type="submit" class="w-1/2 bg-yellow-500 text-black font-bold py-2 rounded">Giriş</button></div></form>
-    </div>
-
-    <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900 text-white z-[100] p-6 overflow-y-auto">
-        <header class="flex justify-between mb-6 border-b border-slate-700 pb-4"><h1 class="text-2xl font-bold text-yellow-400">HAKİM KONTROL PANELİ</h1><button onclick="location.reload()" class="bg-red-900/50 px-4 py-2 rounded text-sm hover:bg-red-900 transition">Oturumu Kapat</button></header>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- SOL -->
-            <div class="space-y-6">
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Duruşma Akışı</h3>
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <button onclick="setSpeaker('Davacı Avukatı')" class="p-3 bg-blue-900/50 border border-blue-700 hover:bg-blue-800 rounded-lg text-blue-100 font-bold text-sm">Davacı Avukatı</button>
-                        <button onclick="setSpeaker('Sanık Avukatı')" class="p-3 bg-red-900/50 border border-red-700 hover:bg-red-800 rounded-lg text-red-100 font-bold text-sm">Sanık Avukatı</button>
-                        <button onclick="setSpeaker('Davacı Elif Yılmaz')" class="p-3 bg-blue-900/30 border border-blue-800 hover:bg-blue-800 rounded-lg text-blue-200 text-sm">Davacı (Elif Y.)</button>
-                        <button onclick="setSpeaker('Sanık Ahmet Yılmaz')" class="p-3 bg-red-900/30 border border-red-800 hover:bg-red-800 rounded-lg text-red-200 text-sm">Sanık (Ahmet Y.)</button>
-                        <button onclick="setSpeaker('Tanık')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm">Tanık</button>
-                        <button onclick="setSpeaker('Hakim')" class="p-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg text-white font-bold text-sm">Hakim</button>
-                    </div>
-                    <div class="border-t border-slate-600 pt-4">
-                        <h4 class="text-xs font-bold text-slate-400 mb-2">Zamanlayıcı (Dakika)</h4>
-                        <div class="flex gap-2">
-                            <button onclick="startTimer(1)" class="flex-1 bg-slate-700 hover:bg-slate-600 p-2 rounded text-xs">1 dk</button>
-                            <button onclick="startTimer(3)" class="flex-1 bg-slate-700 hover:bg-slate-600 p-2 rounded text-xs">3 dk</button>
-                            <button onclick="startTimer(5)" class="flex-1 bg-slate-700 hover:bg-slate-600 p-2 rounded text-xs">5 dk</button>
-                            <button onclick="stopTimer()" class="w-10 bg-red-600 hover:bg-red-500 p-2 rounded text-white flex items-center justify-center"><i class="fa-solid fa-stop"></i></button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-64 flex flex-col">
-                    <div class="flex justify-between items-center mb-4"><h3 class="text-sm font-bold text-slate-400 uppercase">Söz Hakkı Talepleri</h3><span class="bg-red-600 text-white text-xs px-2 py-1 rounded-full" id="req-count">0</span></div>
-                    <div id="admin-speak-list" class="flex-1 overflow-y-auto space-y-2 pr-2"><p class="text-slate-500 text-sm text-center mt-10">Bekleyen talep yok.</p></div>
-                </div>
-            </div>
-
-            <!-- SAĞ -->
-            <div class="space-y-6">
-                <!-- OYLAMA KONTROLÜ (YENİ) -->
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Oylama Yönetimi</h3>
-                    <div class="flex items-center justify-between mb-4 bg-slate-900 p-3 rounded-lg">
-                        <span class="text-sm text-white font-bold">Sonuçları Ekranda Göster</span>
-                        <button onclick="toggleVoteVisibility()" id="btn-vote-toggle" class="bg-green-600 px-4 py-2 rounded-lg text-xs font-bold w-24">AÇIK</button>
-                    </div>
-                    <button onclick="resetSimulation()" class="bg-red-900/80 hover:bg-red-900 text-white px-4 py-3 rounded-lg font-bold w-full text-xs border border-red-700">⚠️ YENİ DAVA BAŞLAT</button>
-                </div>
-
-                <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 h-64 overflow-y-auto"><h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Gelen Gizli Sorular</h3><ul id="admin-questions-list" class="space-y-2 text-sm"></ul></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="image-modal" class="hidden fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4" onclick="this.classList.add('hidden')"><img id="modal-img" src="" class="max-h-full max-w-full rounded"></div>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4",
-            authDomain: "mahkeme-sim.firebaseapp.com",
-            projectId: "mahkeme-sim",
-            storageBucket: "mahkeme-sim.firebasestorage.app",
-            messagingSenderId: "573778878408",
-            appId: "1:573778878408:web:67ab4ac006df3325ec6afd",
-            measurementId: "G-8Z9QFL662E"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        const JURY_SIZE = 35; 
-        const SEATS = 'sim_seats';
-        const VOTES = 'sim_votes';
-        const QUESTIONS = 'sim_questions';
-        const SENTIMENT = 'sim_sentiment';
-        const CHAT = 'sim_chat'; 
-        const SPEAK_REQ = 'sim_speak_requests';
-        const NOTIFICATIONS = 'sim_notifications';
-        const SETTINGS = 'sim_settings';
-
-        let currentUser = null;
-        let initialLoadComplete = false;
-        let timerInterval = null;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initSettings();
-            generateSeats('koltuk-grid', true);
-            checkSession();
-        });
-
-        async function initSettings() {
-            const doc = await db.collection(SETTINGS).doc('admin_auth').get();
-            if(!doc.exists) db.collection(SETTINGS).doc('admin_auth').set({password:'1234'});
-            
-            const flow = await db.collection(SETTINGS).doc('flow').get();
-            if(!flow.exists) db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true, timer_end: null});
+                for (const col of cols) { const snap = await db.collection(col).get(); if (!snap.empty) { const batch = db.batch(); snap.docs.forEach(doc => batch.delete(doc.ref)); await batch.commit(); } }
+                await db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true});
+                alert("Sistem Sıfırlandı."); location.reload();
+            } catch (error) { console.error(error); alert("Hata oluştu: " + error.message); }
         }
 
-        function generateSeats(elementId, clickable) {
-            const grid = document.getElementById(elementId);
-            grid.innerHTML = '';
-            db.collection(SEATS).onSnapshot(snap => {
-                const occupied = {};
-                snap.forEach(doc => occupied[doc.id] = doc.data().name);
-                grid.innerHTML = '';
-                for(let i=1; i<=JURY_SIZE; i++) {
-                    const div = document.createElement('div');
-                    const isTaken = occupied[i];
-                    if(clickable) {
-                        const btn = document.createElement('button');
-                        btn.className = `w-full aspect-square rounded-lg font-bold text-xs flex items-center justify-center ${isTaken ? 'bg-slate-800 text-slate-600 border border-slate-700 cursor-not-allowed' : 'bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 text-slate-300 border border-slate-600'}`;
-                        btn.textContent = i;
-                        if(!isTaken) btn.onclick = () => selectSeat(i);
-                        grid.appendChild(btn);
-                    } else {
-                        // AKILLI TAHTA GÖRÜNÜMÜ (7 SÜTUN)
-                        div.className = `w-full aspect-square rounded-lg border flex items-center justify-center p-0.5 text-center transition-all duration-500 relative overflow-hidden ${isTaken ? 'bg-green-600 border-green-400 shadow-md scale-100 opacity-100' : 'bg-slate-800 border-slate-700 opacity-30 scale-90'}`;
-                        
-                        if(isTaken) {
-                            // İsimler için daha küçük font ve sıkışık yapı
-                            div.innerHTML = `<span class="text-[8px] font-bold text-white leading-none break-words line-clamp-2">${occupied[i]}</span>`;
-                            div.title = occupied[i];
-                        } else {
-                            div.innerHTML = `<span class="text-slate-600 text-[9px] font-mono">${i}</span>`;
-                        }
-                        grid.appendChild(div);
-                    }
-                }
-                if(document.getElementById('proj-jury-count')) document.getElementById('proj-jury-count').textContent = `${Object.keys(occupied).length}/${JURY_SIZE}`;
-            });
-        }
-
-        async function selectSeat(id) {
-            const name = document.getElementById('juri-ad').value.trim();
-            if(name.length < 3) return alert("İsim giriniz.");
-            await db.collection(SEATS).doc(String(id)).set({name, seatId: id, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
-            localStorage.setItem('seatId', id); localStorage.setItem('name', name);
-            enterApp(name, id);
-        }
-
-        function checkSession() {
-            const s = localStorage.getItem('seatId'); const n = localStorage.getItem('name');
-            if(s && n) enterApp(n, s);
-        }
-
-        function enterApp(name, id) {
-            currentUser = { name, seatId: id };
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-interface').classList.remove('hidden');
-            document.getElementById('app-interface').classList.add('flex');
-            document.getElementById('header-user-name').textContent = `${name} (${id})`;
-            setupUserListeners();
-            initMobileChat(); 
-        }
-
-        async function logoutUser() {
-            if(!currentUser) return;
-            if(confirm("Çıkış yapılacak?")) {
-                try { await db.collection(SEATS).doc(String(currentUser.seatId)).delete(); } catch(e){}
-                localStorage.removeItem('seatId'); localStorage.removeItem('name');
-                location.reload();
-            }
-        }
-
-        function switchTab(id, btn) {
-            ['tab-live', 'tab-evidence', 'tab-chat', 'tab-comm', 'tab-vote'].forEach(t => document.getElementById(t).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            btn.classList.add('active');
-        }
-
-        function setupUserListeners() {
-            let timeout;
-            document.getElementById('sentiment-slider').addEventListener('input', (e) => {
-                document.getElementById('sentiment-status').textContent = "...";
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    db.collection(SENTIMENT).doc(String(currentUser.seatId)).set({val: parseInt(e.target.value), name: currentUser.name});
-                    document.getElementById('sentiment-status').textContent = "";
-                }, 300);
-            });
-            db.collection(VOTES).doc(String(currentUser.seatId)).onSnapshot(doc => {
-                if(doc.exists) document.getElementById('vote-buttons-area').innerHTML = "OY KAYDEDİLDİ";
-            });
-        }
-
-        function requestSpeech() {
-            if(!currentUser) return;
-            if(confirm("Söz hakkı talebiniz Hakime iletilecek.")) {
-                db.collection(SPEAK_REQ).add({
-                    author: currentUser.name,
-                    seatId: currentUser.seatId,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                alert("Talep gönderildi.");
-            }
-        }
-
-        function initMobileChat() {
-            db.collection(CHAT).orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
-                const feed = document.getElementById('mobile-chat-feed');
-                feed.innerHTML = '';
-                const messages = [];
-                snap.forEach(doc => messages.push(doc.data()));
-                messages.reverse().forEach(msg => {
-                    const isMe = msg.seatId == currentUser.seatId;
-                    const div = document.createElement('div');
-                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
-                    div.innerHTML = `<div class="text-[10px] text-slate-500 mb-0.5 px-1">${isMe ? 'Ben' : msg.author}</div><div class="px-3 py-2 rounded-2xl text-sm max-w-[80%] ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-slate-800 rounded-bl-none shadow-sm'}">${msg.text}</div>`;
-                    feed.appendChild(div);
-                });
-                feed.scrollTop = feed.scrollHeight;
-            });
-        }
-
-        function sendChat() {
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if(!text) return;
-            db.collection(CHAT).add({text, author: currentUser.name, seatId: currentUser.seatId, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
-            input.value = '';
-        }
-
-        function initProjectorChat() {
-            db.collection(CHAT).orderBy('timestamp', 'desc').limit(10).onSnapshot(snap => {
-                const feed = document.getElementById('proj-chat-feed');
-                feed.innerHTML = ''; 
-                snap.forEach(doc => {
-                    const msg = doc.data();
-                    const div = document.createElement('div');
-                    div.className = "bg-slate-700/80 p-3 rounded-xl border-l-4 border-yellow-400 mb-2 chat-bubble-enter shadow-lg backdrop-blur-sm";
-                    div.innerHTML = `<div class="flex justify-between items-start mb-1"><span class="font-bold text-yellow-400 text-xs">${msg.author} <span class="text-slate-400 text-[10px] font-normal">(Koltuk ${msg.seatId})</span></span></div><div class="text-sm text-white leading-relaxed">${msg.text}</div>`;
-                    feed.appendChild(div);
-                });
-            });
-        }
-
-        function playAlertSound() {
-            const audio = document.getElementById('alert-sound');
-            audio.currentTime = 0;
-            audio.play().catch(e => console.log("Ses:", e));
-        }
-
-        function showNotification(title, message) {
-            const container = document.getElementById('notification-area');
-            const notif = document.createElement('div');
-            notif.className = "bg-yellow-500 text-slate-900 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 toast-enter border-4 border-white/20";
-            notif.innerHTML = `<div class="bg-white w-10 h-10 rounded-full flex items-center justify-center text-yellow-600 font-bold"><i class="fa-solid fa-gavel"></i></div><div><h4 class="font-black text-lg leading-none uppercase">${title}</h4><p class="text-sm font-semibold opacity-90">${message}</p></div>`;
-            container.appendChild(notif);
-            setTimeout(() => {
-                notif.style.opacity = '0'; notif.style.transform = 'translateX(100%)'; notif.style.transition = 'all 0.5s ease';
-                setTimeout(() => notif.remove(), 500);
-            }, 6000);
-        }
-
-        function sendQuestion() {
+        window.openImage = function(src) { document.getElementById('modal-img').src=src; document.getElementById('image-modal').classList.remove('hidden'); }
+        window.logoutUser = function() { localStorage.clear(); location.reload(); }
+        window.sendQuestion = function() {
             const txt = document.getElementById('question-input').value.trim();
             if(!txt) return;
             db.collection(QUESTIONS).add({text: txt, author: currentUser.name, seat: currentUser.seatId, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
-            alert("Soru gitti."); document.getElementById('question-input').value = '';
-        }
-
-        function submitVote(vote) {
-            if(confirm("Emin misiniz?")) db.collection(VOTES).doc(String(currentUser.seatId)).set({vote, name: currentUser.name, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
-        }
-        
-        function openImage(src) { document.getElementById('modal-img').src = src; document.getElementById('image-modal').classList.remove('hidden'); }
-
-        function openProjectorMode() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('projector-panel').classList.remove('hidden');
-            initProjectorData();
-        }
-
-        function initProjectorData() {
-            generateSeats('proj-seat-grid', false);
-            initProjectorChat();
-            
-            // 1. Konuşmacı & Ayar Takibi
-            db.collection(SETTINGS).doc('flow').onSnapshot(doc => {
-                if(doc.exists) {
-                    const data = doc.data();
-                    const speaker = data.current_speaker;
-                    const el = document.getElementById('speaker-text');
-                    const box = document.getElementById('current-speaker-box');
-                    
-                    if(el.textContent !== speaker) {
-                        el.textContent = speaker;
-                        box.classList.remove('speaker-change'); void box.offsetWidth; box.classList.add('speaker-change');
-                    }
-
-                    // Oylama Gizliliği
-                    const overlay = document.getElementById('vote-blind-overlay');
-                    const content = document.getElementById('vote-content');
-                    if(data.show_votes) {
-                        overlay.classList.add('hidden');
-                        content.classList.remove('blur-sm');
-                    } else {
-                        overlay.classList.remove('hidden');
-                        content.classList.add('blur-sm');
-                    }
-
-                    // Zamanlayıcı
-                    const timerBox = document.getElementById('timer-box');
-                    const timerDisp = document.getElementById('timer-display');
-                    
-                    if(data.timer_end) {
-                        timerBox.classList.remove('hidden');
-                        if(timerInterval) clearInterval(timerInterval);
-                        
-                        timerInterval = setInterval(() => {
-                            const now = new Date().getTime();
-                            const distance = data.timer_end.toDate().getTime() - now;
-                            
-                            if (distance < 0) {
-                                clearInterval(timerInterval);
-                                timerDisp.textContent = "00:00";
-                                timerDisp.classList.add('animate-pulse', 'text-red-600');
-                            } else {
-                                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                                const s = Math.floor((distance % (1000 * 60)) / 1000);
-                                timerDisp.textContent = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
-                            }
-                        }, 1000);
-                    } else {
-                        timerBox.classList.add('hidden');
-                        if(timerInterval) clearInterval(timerInterval);
-                    }
-                }
-            });
-
-            setTimeout(() => { initialLoadComplete = true; }, 2000);
-            db.collection(NOTIFICATIONS).orderBy('timestamp', 'desc').limit(1).onSnapshot(snap => {
-                if(!initialLoadComplete) return;
-                snap.docChanges().forEach(change => {
-                    if(change.type === "added") {
-                        const d = change.doc.data();
-                        if((new Date() - d.timestamp.toDate()) < 10000) {
-                            playAlertSound();
-                            showNotification("SÖZ HAKKI VERİLDİ", d.text);
-                        }
-                    }
-                });
-            });
-
-            db.collection(SENTIMENT).onSnapshot(snap => {
-                let total=0, count=0; snap.forEach(d=>{total+=d.data().val; count++});
-                if(count>0) {
-                    const avg = total/count;
-                    const m = document.getElementById('proj-sentiment-marker');
-                    m.style.left = avg+"%"; document.getElementById('proj-sentiment-val').textContent=avg.toFixed(0)+"%";
-                    m.style.backgroundColor = avg<40 ? "#ef4444" : (avg>60 ? "#22c55e" : "#ffffff");
-                }
-            });
-            db.collection(VOTES).onSnapshot(snap => {
-                let g=0, ng=0; snap.forEach(d=>d.data().vote==='SUÇLU'?g++:ng++);
-                document.getElementById('proj-vote-guilty').textContent=g; document.getElementById('proj-vote-notguilty').textContent=ng;
-                const t=g+ng; 
-                if(t>0){document.getElementById('proj-bar-guilty').style.width=(g/t*100)+"%"; document.getElementById('proj-bar-notguilty').style.width=(ng/t*100)+"%"}
-                const thresh = Math.floor(JURY_SIZE/2)+1;
-                const v = document.getElementById('proj-final-verdict');
-                if(g>=thresh){v.innerHTML="KARAR: <span class='text-red-500'>SUÇLU</span>"; v.classList.remove('hidden');}
-                else if(ng>=thresh){v.innerHTML="KARAR: <span class='text-green-500'>SUÇSUZ</span>"; v.classList.remove('hidden');}
-            });
-        }
-
-        function openAdminModal(){document.getElementById('admin-login-modal').classList.remove('hidden');}
-        async function handleAdminLogin(e){
-            e.preventDefault(); const p=document.getElementById('admin-pass').value; const d=await db.collection(SETTINGS).doc('admin_auth').get();
-            if(d.data().password===p){document.getElementById('admin-login-modal').classList.add('hidden');document.getElementById('login-screen').classList.add('hidden');document.getElementById('admin-panel').classList.remove('hidden');initAdminPanel();}
-            else alert("Hata");
-        }
-
-        function initAdminPanel(){
-            db.collection(QUESTIONS).orderBy('timestamp','desc').onSnapshot(s=>{
-                const l=document.getElementById('admin-questions-list'); l.innerHTML='';
-                s.forEach(d=>l.innerHTML+=`<li class="bg-slate-700 p-2 rounded mb-2 text-xs"><span class="text-yellow-400 font-bold">${d.data().author}:</span> ${d.data().text}</li>`);
-            });
-
-            db.collection(SPEAK_REQ).orderBy('timestamp', 'asc').onSnapshot(snap => {
-                const list = document.getElementById('admin-speak-list');
-                const count = document.getElementById('req-count');
-                list.innerHTML = '';
-                count.textContent = snap.size;
-                if(snap.empty) { list.innerHTML = '<p class="text-slate-500 text-sm text-center mt-10">Bekleyen talep yok.</p>'; return; }
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    const div = document.createElement('div');
-                    div.className = "bg-slate-700 p-3 rounded flex justify-between items-center";
-                    div.innerHTML = `<div><div class="font-bold text-white text-sm">${d.author}</div><div class="text-xs text-slate-400">Koltuk: ${d.seatId}</div></div>`;
-                    const btn = document.createElement('button');
-                    btn.className = "bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs font-bold";
-                    btn.textContent = "Söz Ver";
-                    btn.onclick = () => approveSpeech(doc.id, d.author);
-                    div.appendChild(btn);
-                    list.appendChild(div);
-                });
-            });
-        }
-
-        function setSpeaker(name) {
-            db.collection(SETTINGS).doc('flow').update({ current_speaker: name });
-        }
-
-        function toggleVoteVisibility() {
-            db.collection(SETTINGS).doc('flow').get().then(doc => {
-                const current = doc.data().show_votes;
-                const newState = !current;
-                db.collection(SETTINGS).doc('flow').update({ show_votes: newState });
-                document.getElementById('btn-vote-toggle').textContent = newState ? "AÇIK" : "GİZLİ";
-                document.getElementById('btn-vote-toggle').className = newState ? "bg-green-600 px-4 py-2 rounded-lg text-xs font-bold w-24" : "bg-red-600 px-4 py-2 rounded-lg text-xs font-bold w-24";
-            });
-        }
-
-        function startTimer(minutes) {
-            const end = new Date();
-            end.setMinutes(end.getMinutes() + minutes);
-            db.collection(SETTINGS).doc('flow').update({ timer_end: firebase.firestore.Timestamp.fromDate(end) });
-        }
-
-        function stopTimer() {
-            db.collection(SETTINGS).doc('flow').update({ timer_end: null });
-        }
-
-        function approveSpeech(reqId, name) {
-            db.collection(NOTIFICATIONS).add({ text: `${name} konuşabilir.`, type: 'grant', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            db.collection(SPEAK_REQ).doc(reqId).delete();
-            setSpeaker(name);
-        }
-
-        async function resetSimulation(){
-            if(confirm("Sıfırla?")){
-                const bd=async(c)=>{const s=await db.collection(c).get();s.forEach(d=>d.ref.delete())};
-                await bd(SEATS); await bd(VOTES); await bd(QUESTIONS); await bd(SENTIMENT); await bd(CHAT); await bd(SPEAK_REQ); await bd(NOTIFICATIONS);
-                db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true, timer_end: null});
-                location.reload();
-            }
+            alert("Soru gönderildi."); document.getElementById('question-input').value = '';
         }
     </script>
 </body>
 </html>
+
+
