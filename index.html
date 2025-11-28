@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adalet Simülasyonu v31.0</title>
+    <title>Adalet Simülasyonu v32.0</title>
     
     <!-- Kütüphaneler -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,34 +24,57 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- AKILLI TAHTA BİLDİRİM EFEKTİ (YENİ) --- */
-        .glass-notification {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            border: 2px solid rgba(250, 204, 21, 0.5);
-            box-shadow: 0 0 50px rgba(250, 204, 21, 0.3), inset 0 0 20px rgba(250, 204, 21, 0.1);
-            animation: zoomInBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* --- EMOJİ ANİMASYONU --- */
+        .emoji-float {
+            position: absolute;
+            bottom: 0;
+            font-size: 3rem;
+            animation: floatUp 4s ease-in forwards;
+            pointer-events: none;
+            z-index: 9999;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
         }
-        @keyframes zoomInBounce {
-            0% { transform: scale(0) translateY(50px); opacity: 0; }
-            60% { transform: scale(1.1) translateY(0); opacity: 1; }
-            100% { transform: scale(1) translateY(0); }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; transform: translateY(-50px) scale(1.2) rotate(10deg); }
+            100% { transform: translateY(-80vh) scale(1) rotate(-10deg); opacity: 0; }
         }
 
-        /* --- BUTON EFEKTLERİ --- */
+        /* --- KOLTUK STİLLERİ --- */
+        .seat-occupied { 
+            background-color: #b91c1c; /* Kırmızı */
+            border-color: #7f1d1d; 
+            color: #fca5a5; 
+            cursor: not-allowed; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .seat-empty { 
+            background-color: #334155; 
+            border-color: #475569; 
+            color: #94a3b8; 
+            transition: all 0.2s;
+        }
+        .seat-empty:hover { 
+            background-color: #fbbf24; 
+            color: #0f172a; 
+            border-color: #f59e0b; 
+            transform: scale(1.05);
+        }
+
+        /* --- BİLDİRİM (TOAST) --- */
+        #local-toast { transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .toast-show { transform: translateX(-50%) translateY(0) !important; opacity: 1 !important; }
+
+        /* --- DİĞER EFEKTLER --- */
         .btn-glow-teacher { box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); border: 2px solid #facc15; animation: pulse-yellow 3s infinite; }
         @keyframes pulse-yellow { 50% { box-shadow: 0 0 25px rgba(234, 179, 8, 0.6); } }
-
         .btn-glow-judge { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); border: 2px solid #64748b; animation: pulse-blue 4s infinite; }
         @keyframes pulse-blue { 50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.5); } }
-
         .btn-glow-projector { box-shadow: 0 0 10px #06b6d4; border: 2px solid #22d3ee; animation: pulse-cyan 2s infinite alternate; }
         @keyframes pulse-cyan { from { box-shadow: 0 0 5px #06b6d4; } to { box-shadow: 0 0 20px #22d3ee; } }
-
-        /* --- DİĞER --- */
-        .nav-item.active { color: #fbbf24; border-top: 3px solid #fbbf24; background: rgba(30, 41, 59, 0.95); }
-        .nav-item { transition: all 0.2s ease; border-top: 3px solid transparent; }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .nav-item.active { color: #fbbf24; border-top: 3px solid #fbbf24; background: rgba(30, 41, 59, 0.95); }
         .blur-overlay { filter: blur(12px); pointer-events: none; user-select: none; }
         .msg-enter { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -64,11 +87,11 @@
         .evidence-item:active { transform: scale(0.98); background-color: rgba(51, 65, 85, 0.8); }
 
         /* Neon Metinler */
-        .neon-pink { color: #f472b6; text-shadow: 0 0 8px #be185d; }
-        .neon-cyan { color: #22d3ee; text-shadow: 0 0 8px #0e7490; }
-        .neon-lime { color: #a3e635; text-shadow: 0 0 8px #4d7c0f; }
-        .neon-yellow { color: #facc15; text-shadow: 0 0 8px #b45309; }
-        .neon-purple { color: #e879f9; text-shadow: 0 0 8px #c026d3; }
+        .neon-text-pink { color: #f472b6; text-shadow: 0 0 8px #be185d; }
+        .neon-text-cyan { color: #22d3ee; text-shadow: 0 0 8px #0e7490; }
+        .neon-text-lime { color: #a3e635; text-shadow: 0 0 8px #4d7c0f; }
+        .neon-text-yellow { color: #facc15; text-shadow: 0 0 8px #b45309; }
+        .neon-text-purple { color: #e879f9; text-shadow: 0 0 8px #c026d3; }
         
         /* Liderlik Tablosu */
         .rank-card { transition: transform 0.2s; }
@@ -126,31 +149,22 @@
             <div class="flex items-center gap-3"><div class="bg-slate-800 px-3 py-1 rounded-full border border-yellow-500/30 flex items-center gap-1 shadow-[0_0_10px_rgba(250,204,21,0.3)]"><i class="fa-solid fa-star text-yellow-500 text-xs"></i><span id="my-score" class="text-xs font-bold text-white">0</span></div><button onclick="logoutUser()" class="text-slate-400 hover:text-red-400 p-2"><i class="fa-solid fa-right-from-bracket"></i></button></div>
         </header>
 
-        <!-- SÖZ İSTE BUTONU -->
         <button onclick="requestSpeech()" class="fixed bottom-24 left-4 z-40 bg-yellow-500 text-slate-900 p-4 rounded-full shadow-[0_0_20px_rgba(250,204,21,0.6)] w-16 h-16 flex flex-col items-center justify-center border-4 border-white/20 active:scale-90 transition btn-glow-teacher"><i class="fa-solid fa-hand text-xl"></i><span class="text-[9px] font-bold mt-1">SÖZ</span></button>
 
-        <!-- EMOJİLER (YENİ YERİ: Söz İste Butonunun Üstünde) -->
+        <!-- EMOJİ TEPKİLERİ (SOL TARAF, SÖZ BUTONUNUN ÜSTÜNDE) -->
         <div class="fixed bottom-44 left-6 z-40 flex flex-col gap-3">
             <button onclick="sendReaction('😱')" class="w-12 h-12 bg-slate-800 rounded-full shadow-lg text-xl border border-slate-600 active:scale-90 transition hover:bg-slate-700 hover:border-yellow-500">😱</button>
             <button onclick="sendReaction('🤔')" class="w-12 h-12 bg-slate-800 rounded-full shadow-lg text-xl border border-slate-600 active:scale-90 transition hover:bg-slate-700 hover:border-yellow-500">🤔</button>
             <button onclick="sendReaction('👏')" class="w-12 h-12 bg-slate-800 rounded-full shadow-lg text-xl border border-slate-600 active:scale-90 transition hover:bg-slate-700 hover:border-yellow-500">👏</button>
         </div>
 
-        <!-- QUIZ MODAL -->
-        <div id="student-quiz-modal" class="hidden fixed inset-0 z-[300] bg-slate-950/95 flex flex-col items-center justify-center p-6 quiz-enter text-white">
-            <div class="w-full max-w-md bg-slate-800 p-6 rounded-2xl border border-yellow-500/50 shadow-2xl">
-                <div class="flex justify-between items-center mb-6"><span class="bg-red-600 px-3 py-1 rounded text-xs font-bold animate-pulse">CANLI SORU</span><span class="text-yellow-400 font-bold"><i class="fa-solid fa-clock mr-1"></i>Cevapla!</span></div>
-                <h2 id="quiz-question-text" class="text-xl font-bold text-center mb-6 leading-tight">...</h2><div id="quiz-options-container" class="grid grid-cols-1 gap-3 w-full"></div><p id="quiz-status-text" class="text-center mt-6 text-slate-400 text-sm hidden">Cevabınız alındı, bekleyiniz...</p>
-            </div>
-        </div>
-
-        <!-- GEREKÇELİ KARAR -->
         <div id="reason-modal" class="hidden fixed inset-0 z-[300] bg-slate-950/95 flex flex-col items-center justify-center p-6"><div class="bg-slate-800 w-full max-w-md p-6 rounded-2xl border border-slate-600 shadow-2xl"><h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-scale-unbalanced text-yellow-400"></i> Karar Gerekçeniz</h3><p class="text-slate-400 text-xs mb-4">Vicdani kanaatinizin sebebini kısaca açıklayınız. (+20 Puan)</p><textarea id="vote-reason" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-500 mb-4 h-32 resize-none" placeholder="Çünkü..."></textarea><div class="flex gap-3"><button onclick="document.getElementById('reason-modal').classList.add('hidden')" class="flex-1 bg-slate-700 text-white py-3 rounded-xl text-sm font-bold hover:bg-slate-600">İptal</button><button onclick="confirmVote()" class="flex-1 bg-green-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-green-500 shadow-lg">GÖNDER</button></div></div></div>
+        <div id="student-quiz-modal" class="hidden fixed inset-0 z-[300] bg-slate-950/95 flex flex-col items-center justify-center p-6 quiz-enter text-white"><div class="w-full max-w-md bg-slate-800 p-6 rounded-2xl border border-yellow-500/50 shadow-2xl"><div class="flex justify-between items-center mb-6"><span class="bg-red-600 px-3 py-1 rounded text-xs font-bold animate-pulse">CANLI SORU</span><span class="text-yellow-400 font-bold"><i class="fa-solid fa-clock mr-1"></i>Cevapla!</span></div><h2 id="quiz-question-text" class="text-xl font-bold text-center mb-6 leading-tight">...</h2><div id="quiz-options-container" class="grid grid-cols-1 gap-3 w-full"></div><p id="quiz-status-text" class="text-center mt-6 text-slate-400 text-sm hidden">Cevabınız alındı, bekleyiniz...</p></div></div>
 
-        <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-20 bg-slate-200 text-slate-800">
+        <main class="flex-1 overflow-y-auto no-scrollbar relative w-full pb-24 bg-slate-200 text-slate-800">
             <div id="tab-live" class="tab-content active p-4 space-y-4">
-                <div class="bg-white p-4 rounded-2xl shadow-md border-t-4 border-yellow-500 mb-2"><h3 class="font-bold text-slate-800 mb-3 text-center text-xs uppercase tracking-widest flex items-center justify-center gap-2"><i class="fa-solid fa-trophy text-yellow-500"></i> EN İYİ 5 ADALET SAVAŞÇISI</h3><div id="leaderboard-list" class="space-y-2"><p class="text-center text-xs text-slate-400">Yükleniyor...</p></div></div>
                 <div class="bg-white p-6 rounded-2xl shadow-lg border-l-4 border-blue-600"><h3 class="font-bold text-slate-800 mb-4 text-center text-sm">VİCDANİ KANAAT</h3><input type="range" id="sentiment-slider" min="0" max="100" value="50" step="10" class="w-full h-4 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"><div class="flex justify-between text-[10px] font-bold mt-2 px-1"><span class="text-red-600">DAVACI</span><span class="text-green-600">SANIK</span></div><p id="sentiment-status" class="text-center text-[10px] text-slate-400 mt-2 h-4"></p></div>
+                <div class="bg-white p-4 rounded-2xl shadow-md border-t-4 border-yellow-500 mb-2"><h3 class="font-bold text-slate-800 mb-3 text-center text-xs uppercase tracking-widest flex items-center justify-center gap-2"><i class="fa-solid fa-trophy text-yellow-500"></i> EN İYİ 5 ADALET SAVAŞÇISI</h3><div id="leaderboard-list" class="space-y-2"><p class="text-center text-xs text-slate-400">Yükleniyor...</p></div></div>
             </div>
             
             <div id="tab-evidence" class="tab-content hidden p-4 space-y-3">
@@ -161,8 +175,8 @@
             </div>
 
             <div id="tab-chat" class="tab-content hidden flex-col h-full">
-                <div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto pb-20"></div>
-                <div class="bg-white p-3 border-t flex gap-2 items-center safe-area-bottom sticky bottom-0 shadow-lg"><input type="text" id="chat-input" class="flex-1 bg-slate-100 rounded-full px-4 py-3 text-sm outline-none border focus:border-blue-500" placeholder="Yaz..."><button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full shadow active:scale-90 transition"><i class="fa-solid fa-paper-plane"></i></button></div>
+                <div id="mobile-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto pb-24 flex flex-col"></div>
+                <div class="bg-white p-3 border-t flex gap-2 items-center safe-area-bottom sticky bottom-0 shadow-lg z-20"><input type="text" id="chat-input" class="flex-1 bg-slate-100 rounded-full px-4 py-3 text-sm outline-none border focus:border-blue-500" placeholder="Yaz..."><button onclick="sendChat()" class="bg-blue-600 text-white w-10 h-10 rounded-full shadow active:scale-90 transition"><i class="fa-solid fa-paper-plane"></i></button></div>
             </div>
 
             <div id="tab-comm" class="tab-content hidden p-4"><div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 shadow-sm"><h3 class="font-bold text-indigo-900 text-sm mb-3">Hakime Soru İlet</h3><textarea id="question-input" rows="4" class="w-full p-3 rounded-lg text-sm border border-indigo-200 focus:outline-none" placeholder="Sorunuz..."></textarea><button onclick="sendQuestion()" class="w-full mt-3 bg-indigo-600 text-white py-3 rounded-lg text-sm font-bold shadow-md active:scale-95 transition">GÖNDER</button></div></div>
@@ -206,19 +220,24 @@
 
     <!-- 4. AKILLI TAHTA MODU -->
     <div id="projector-panel" class="hidden absolute inset-0 bg-slate-900 text-white z-[150] overflow-hidden flex flex-col p-6 relative">
-        <!-- BİLDİRİM OVERLAY -->
-        <div id="projector-overlay" class="hidden absolute inset-0 z-[300] bg-black/90 flex flex-col items-center justify-center text-center p-10 animate-bounce"><div class="glass-notification p-10 rounded-3xl"><i id="overlay-icon" class="text-7xl mb-6 text-white drop-shadow-lg"></i><h1 id="overlay-text" class="text-5xl font-black text-white tracking-widest uppercase drop-shadow-lg"></h1></div></div>
-        <div id="notification-area" class="absolute top-24 right-6 w-96 z-[200] space-y-3 pointer-events-none"></div>
+        <!-- BİLDİRİM OVERLAY (GLASSMORPHISM) -->
+        <div id="projector-overlay" class="hidden absolute inset-0 z-[300] flex flex-col items-center justify-center p-10 pointer-events-none">
+            <div class="glass-notification p-12 rounded-3xl text-center w-full max-w-3xl">
+                <i id="overlay-icon" class="text-8xl mb-6 text-yellow-400 drop-shadow-lg block mx-auto animate-bounce"></i>
+                <h1 id="overlay-text" class="text-5xl font-black text-white tracking-widest uppercase drop-shadow-lg leading-tight"></h1>
+            </div>
+        </div>
         <!-- EMOJİ UÇUŞ ALANI -->
         <div id="emoji-container" class="absolute inset-0 pointer-events-none z-[250] overflow-hidden"></div>
-
+        
+        <div id="notification-area" class="absolute top-24 right-6 w-96 z-[200] space-y-3 pointer-events-none"></div>
         <header class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6 shrink-0">
             <div class="flex items-center gap-6"><div id="current-speaker-box" class="bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-yellow-400 shadow-lg"><span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">KÜRSÜDEKİ KONUŞMACI</span><h2 id="current-speaker-name" class="text-2xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-microphone-lines text-yellow-400 animate-pulse"></i><span id="speaker-text">Hakim</span></h2></div><div id="timer-box" class="hidden bg-slate-800 px-6 py-3 rounded-xl border-l-4 border-red-500 shadow-lg flex flex-col items-center justify-center w-32"><span class="text-[10px] text-slate-400 uppercase tracking-widest">SÜRE</span><span id="timer-display" class="text-3xl font-mono font-bold text-red-400">00:00</span></div></div>
             <div class="text-right"><h1 class="text-3xl font-bold text-yellow-400 tracking-wider drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">ADALET SİM.</h1><div class="text-xs text-slate-400 mt-1">Jüri: <span id="proj-jury-count" class="font-bold text-white">0/35</span></div></div>
         </header>
         <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 pb-10 project-grid">
             <div class="col-span-1 md:col-span-7 flex flex-col gap-4">
-                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col justify-center items-center min-h-[200px]">
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl h-full flex flex-col justify-center items-center min-h-[200px]">
                     <h2 class="text-lg font-bold text-slate-400 uppercase mb-8">Vicdani Kanaat</h2>
                     <div class="relative w-full h-12 bg-slate-700 rounded-full mb-4 overflow-hidden"><div class="absolute inset-0 bg-gradient-to-r from-red-600 via-slate-600 to-green-600 opacity-50"></div><div id="proj-sentiment-marker" class="absolute top-0 w-1 h-full bg-white shadow-lg transition-all duration-700 flex items-center justify-center" style="left: 50%;"><div id="proj-sentiment-val" class="absolute -top-8 bg-white text-slate-900 text-xs font-bold px-2 py-1 rounded">50%</div></div></div>
                     <div class="flex justify-between w-full font-bold px-2 mt-2"><span class="text-red-500">DAVACI</span><span class="text-green-500">SANIK</span></div>
@@ -235,7 +254,7 @@
             </div>
             <div class="col-span-1 md:col-span-5 flex flex-col gap-4 h-full">
                 <div class="bg-slate-800 rounded-2xl border border-slate-700 h-1/2 flex flex-col overflow-hidden relative"><div class="bg-slate-700/50 p-2 border-b border-slate-600 flex justify-between items-center"><h2 class="text-xs font-bold text-yellow-400 uppercase pl-2">💬 Müzakere</h2></div><div id="proj-chat-feed" class="flex-1 p-4 space-y-3 overflow-y-auto flex flex-col-reverse"></div></div>
-                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 h-1/2 flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-400 uppercase">YOKLAMA</h3></div><div class="flex-1 overflow-y-auto no-scrollbar pr-1"><div id="proj-seat-grid" class="grid grid-cols-7 gap-1.5 content-start"></div></div></div>
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700 h-1/2 flex flex-col"><div class="flex justify-between items-center mb-2"><h3 class="text-xs font-bold text-slate-400 uppercase">YOKLAMA</h3><button onclick="location.reload()" class="text-[10px] text-slate-500"><i class="fa-solid fa-rotate"></i></button></div><div class="flex-1 overflow-y-auto no-scrollbar pr-1"><div id="proj-seat-grid" class="seat-grid-projector"></div></div></div>
             </div>
         </div>
     </div>
@@ -283,9 +302,10 @@
                     const isTaken = occupied[i];
                     if(clickable) {
                         const btn = document.createElement('button');
-                        btn.className = `w-full aspect-square rounded-lg font-bold text-xs flex items-center justify-center border border-slate-700 transition ${isTaken ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 text-slate-300'}`;
+                        btn.className = `w-full aspect-square rounded-lg font-bold text-xs flex items-center justify-center border border-slate-700 transition ${isTaken ? 'bg-red-600 text-white cursor-not-allowed seat-occupied' : 'bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 text-slate-300 seat-empty'}`;
                         btn.textContent = i; if(!isTaken) btn.onclick = () => selectSeat(i); grid.appendChild(btn);
                     } else {
+                        // Projector View (Kompakt Grid)
                         div.className = `w-full aspect-square rounded border flex items-center justify-center p-0.5 text-center relative overflow-hidden ${isTaken ? 'bg-green-600 border-green-400 shadow' : 'bg-slate-800 border-slate-700 opacity-40'}`;
                         div.innerHTML = isTaken ? `<span class="text-[7px] font-bold text-white leading-none break-words line-clamp-2">${occupied[i]}</span>` : `<span class="text-slate-600 text-[9px] font-mono">${i}</span>`;
                         grid.appendChild(div);
@@ -521,12 +541,10 @@
             });
         }
         window.closeQuiz = function() { db.collection(QUIZZES).where('active', '==', true).get().then(s => s.forEach(d => d.ref.update({active: false}))); alert("Kapatıldı"); }
-        // ÖĞRETMEN SOHBETİ
         window.sendTeacherChat = function() {
             const txt = document.getElementById('teacher-chat-input').value;
             if(txt) { db.collection(CHAT).add({text:txt, author:'ÖĞRETMEN', seatId:'00', avatar:'m2', role:'teacher', timestamp: firebase.firestore.FieldValue.serverTimestamp()}); document.getElementById('teacher-chat-input').value=''; }
         }
-        // ÖĞRETMEN ARAÇLARI
         window.triggerClassEffect = function(type) {
             let msg = type === 'silence' ? 'SESSİZLİK LÜTFEN!' : (type === 'applause' ? 'HARİKASINIZ!' : 'HERKESE +5 PUAN!');
             db.collection(NOTIFICATIONS).add({ text: msg, type: type, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
