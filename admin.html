@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Yöneticisi | Adalet Sim.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        
+        /* Neon Çerçeve Efekti */
+        .neon-border {
+            position: relative;
+            background: #1e293b;
+            border-radius: 12px;
+            z-index: 1;
+        }
+        .neon-border::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 14px;
+            padding: 2px;
+            background: linear-gradient(45deg, #06b6d4, #3b82f6, #06b6d4);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+            animation: spin-glow 4s linear infinite;
+        }
+        @keyframes spin-glow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        .status-online { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; }
+        .status-offline { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; box-shadow: 0 0 10px #ef4444; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+    <!-- GİRİŞ EKRANI -->
+    <div id="login-overlay" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center">
+        <div class="w-full max-w-md p-8 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl text-center">
+            <div class="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_#2563eb]">
+                <i class="fa-solid fa-shield-halved text-4xl text-blue-500"></i>
+            </div>
+            <h1 class="text-2xl font-black text-white tracking-wider mb-1">SİSTEM YÖNETİCİSİ</h1>
+            <p class="text-slate-500 text-xs mb-6">Lütfen yetkili kimlik bilgilerinizi giriniz.</p>
+            
+            <form onsubmit="adminLogin(event)" class="space-y-4">
+                <div class="relative">
+                    <i class="fa-solid fa-user absolute left-3 top-3.5 text-slate-500"></i>
+                    <input type="text" id="username" placeholder="Kullanıcı Adı" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-10 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-key absolute left-3 top-3.5 text-slate-500"></i>
+                    <input type="password" id="password" placeholder="Şifre" class="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-10 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-blue-600/30">GİRİŞ YAP</button>
+            </form>
+            <p id="login-msg" class="text-red-500 text-xs mt-4 h-4"></p>
+        </div>
+    </div>
+
+    <!-- ANA PANEL -->
+    <div id="dashboard" class="hidden flex-1 flex flex-col h-full">
+        <!-- Header -->
+        <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="status-online"></div>
+                <h2 class="font-bold text-lg text-white tracking-wide">SİSTEM KONTROL PANELİ</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden md:block">
+                    <p class="text-xs text-slate-400">Yönetici</p>
+                    <p class="text-sm font-bold text-blue-400">Muhammet Emin Aydın</p>
+                </div>
+                <button onclick="location.reload()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded border border-slate-700 text-xs transition">ÇIKIŞ</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- 1. SİSTEM DURUMU & KİLİT -->
+            <div class="neon-border p-6 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-cyan-400 uppercase mb-4 flex items-center gap-2"><i class="fa-solid fa-server"></i> Sistem Durumu</h3>
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-slate-800 p-3 rounded text-center">
+                            <span class="text-xs text-slate-400 block">Bağlı Jüri</span>
+                            <span id="stat-seats" class="text-2xl font-bold text-white">0</span>
+                        </div>
+                        <div class="bg-slate-800 p-3 rounded text-center">
+                            <span class="text-xs text-slate-400 block">Toplam Oy</span>
+                            <span id="stat-votes" class="text-2xl font-bold text-white">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-900/50 p-4 rounded border border-slate-700">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-bold text-white">SİSTEM ERİŞİMİ</span>
+                            <span id="lock-status" class="text-xs font-mono text-green-400">AÇIK</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">Kilitlendiğinde kimse sisteme giriş yapamaz ve mevcut oturumlar duraklatılır.</p>
+                        <button id="lock-btn" onclick="toggleSystemLock()" class="w-full bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-600 py-3 rounded font-bold text-sm transition">
+                            <i class="fa-solid fa-lock mr-2"></i> SİSTEMİ KİLİTLE
+                        </button>
+                    </div>
+                </div>
+                <button onclick="wipeDatabase()" class="w-full bg-red-900 hover:bg-red-800 text-white py-3 rounded font-bold text-xs mt-4 border border-red-700 shadow-lg shadow-red-900/20">
+                    ⚠️ FABRİKA AYARLARINA DÖN (SIFIRLA)
+                </button>
+            </div>
+
+            <!-- 2. İÇERİK YÖNETİMİ (DELİL & DUYURU) -->
+            <div class="neon-border p-6 space-y-6">
+                <div>
+                    <h3 class="text-sm font-bold text-yellow-400 uppercase mb-3 flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up"></i> Delil Yükle</h3>
+                    <div class="space-y-2">
+                        <input type="text" id="ev-title" placeholder="Delil Başlığı (Örn: Olay Yeri)" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white focus:border-yellow-500 outline-none">
+                        <input type="text" id="ev-url" placeholder="Dosya URL (Resim/Video Linki)" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white focus:border-yellow-500 outline-none">
+                        <div class="flex gap-2">
+                            <select id="ev-type" class="bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white outline-none">
+                                <option value="image">Görsel</option>
+                                <option value="video">Video</option>
+                            </select>
+                            <button onclick="uploadEvidence()" class="flex-1 bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold rounded">YÜKLE</button>
+                        </div>
+                        <p class="text-[10px] text-slate-500">* Yüklenen dosya anında tüm tabletlerde görünür.</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-700 pt-6">
+                    <h3 class="text-sm font-bold text-blue-400 uppercase mb-3 flex items-center gap-2"><i class="fa-solid fa-bullhorn"></i> Sistem Duyurusu</h3>
+                    <textarea id="broadcast-msg" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs text-white focus:border-blue-500 outline-none" placeholder="Tüm kullanıcılara mesaj gönder..."></textarea>
+                    <button onclick="sendBroadcast()" class="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded text-xs font-bold">GÖNDER</button>
+                </div>
+            </div>
+
+            <!-- 3. KULLANICI YÖNETİMİ -->
+            <div class="neon-border p-0 flex flex-col h-96 lg:h-auto">
+                <div class="p-4 border-b border-slate-700 bg-slate-800/50 flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-white uppercase"><i class="fa-solid fa-users mr-2"></i> Katılımcı Listesi</h3>
+                    <span class="text-xs bg-slate-700 px-2 py-1 rounded text-slate-300" id="user-count-badge">0</span>
+                </div>
+                <div class="flex-1 overflow-y-auto p-2">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-500 border-b border-slate-800">
+                            <tr><th class="p-2">Koltuk</th><th class="p-2">İsim</th><th class="p-2 text-right">İşlem</th></tr>
+                        </thead>
+                        <tbody id="user-list-body" class="text-slate-300 divide-y divide-slate-800">
+                            <!-- JS ile dolacak -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // FIREBASE YAPILANDIRMASI (Aynı Proje)
+        const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac006df3325ec6afd" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // LOGİN İŞLEMİ
+        function adminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+
+            if(u === 'muhammet' && p === 'muhammet25') {
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                initAdminSystem();
+            } else {
+                const msg = document.getElementById('login-msg');
+                msg.textContent = 'Hatalı kullanıcı adı veya şifre!';
+                setTimeout(() => msg.textContent = '', 3000);
+            }
+        }
+
+        // SİSTEM BAŞLATMA
+        function initAdminSystem() {
+            // 1. Kullanıcı Listesi
+            db.collection('sim_seats').orderBy('seatId').onSnapshot(snap => {
+                const tbody = document.getElementById('user-list-body');
+                document.getElementById('user-count-badge').textContent = snap.size;
+                document.getElementById('stat-seats').textContent = snap.size;
+                
+                tbody.innerHTML = '';
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/50 transition">
+                            <td class="p-2 font-mono text-yellow-500">#${d.seatId}</td>
+                            <td class="p-2 font-bold">${d.name}</td>
+                            <td class="p-2 text-right">
+                                <button onclick="kickUser('${d.seatId}')" class="bg-red-900/30 text-red-400 hover:bg-red-600 hover:text-white px-2 py-1 rounded text-[10px] border border-red-800 transition">AT</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+
+            // 2. Sistem Durumu
+            db.collection('sim_settings').doc('flow').onSnapshot(doc => {
+                if(doc.exists) {
+                    const isLocked = doc.data().system_locked;
+                    const btn = document.getElementById('lock-btn');
+                    const status = document.getElementById('lock-status');
+                    
+                    if(isLocked) {
+                        status.textContent = 'KİLİTLİ (BAKIMDA)';
+                        status.className = 'text-xs font-mono text-red-500 animate-pulse';
+                        btn.innerHTML = '<i class="fa-solid fa-lock-open mr-2"></i> KİLİDİ AÇ';
+                        btn.className = 'w-full bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white border border-green-600 py-3 rounded font-bold text-sm transition';
+                    } else {
+                        status.textContent = 'AKTİF (AÇIK)';
+                        status.className = 'text-xs font-mono text-green-400';
+                        btn.innerHTML = '<i class="fa-solid fa-lock mr-2"></i> SİSTEMİ KİLİTLE';
+                        btn.className = 'w-full bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-600 py-3 rounded font-bold text-sm transition';
+                    }
+                }
+            });
+
+            // 3. Oy Sayısı
+            db.collection('sim_votes').onSnapshot(s => document.getElementById('stat-votes').textContent = s.size);
+        }
+
+        // FONKSİYONLAR
+
+        // Kullanıcı Atma
+        function kickUser(id) {
+            if(confirm(`Koltuk ${id} kullanıcısı sistemden atılsın mı?`)) {
+                db.collection('sim_seats').doc(String(id)).delete();
+            }
+        }
+
+        // Sistem Kilitleme (Bakım Modu)
+        function toggleSystemLock() {
+            const ref = db.collection('sim_settings').doc('flow');
+            ref.get().then(doc => {
+                const current = doc.exists ? doc.data().system_locked : false;
+                ref.set({ system_locked: !current }, { merge: true });
+            });
+        }
+
+        // Delil Yükleme
+        function uploadEvidence() {
+            const title = document.getElementById('ev-title').value;
+            const url = document.getElementById('ev-url').value;
+            const type = document.getElementById('ev-type').value;
+
+            if(!title || !url) return alert("Başlık ve URL zorunludur.");
+
+            db.collection('sim_evidence').add({
+                title: title,
+                url: url,
+                type: type,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert("Delil yüklendi ve tüm cihazlara gönderildi.");
+                document.getElementById('ev-title').value = '';
+                document.getElementById('ev-url').value = '';
+            });
+        }
+
+        // Sistem Duyurusu
+        function sendBroadcast() {
+            const text = document.getElementById('broadcast-msg').value;
+            if(!text) return;
+            db.collection('sim_chat').add({
+                text: text,
+                author: 'SİSTEM YÖNETİCİSİ',
+                seatId: '00',
+                avatar: 'system', // Özel icon eklenebilir
+                role: 'admin', // Kırmızı renk için
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            document.getElementById('broadcast-msg').value = '';
+            alert("Duyuru sohbete gönderildi.");
+        }
+
+        // Fabrika Ayarlarına Dön
+        async function wipeDatabase() {
+            const code = prompt("DİKKAT: TÜM VERİLER SİLİNECEK!\nOnaylamak için 'SİL' yazınız:");
+            if(code === 'SİL') {
+                const cols = ['sim_seats', 'sim_votes', 'sim_quizzes', 'sim_scores', 'sim_chat', 'sim_speak_requests', 'sim_notifications', 'sim_answers', 'sim_sentiment', 'sim_questions', 'sim_evidence'];
+                
+                for (const col of cols) {
+                    const snap = await db.collection(col).get();
+                    if (!snap.empty) {
+                        const batch = db.batch();
+                        snap.docs.forEach(doc => batch.delete(doc.ref));
+                        await batch.commit();
+                    }
+                }
+                // Ayarları varsayıla döndür
+                await db.collection('sim_settings').doc('flow').set({current_speaker: 'Hakim', show_votes: true, system_locked: false});
+                alert("Sistem başarıyla sıfırlandı.");
+            }
+        }
+    </script>
+</body>
+</html>
