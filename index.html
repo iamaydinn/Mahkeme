@@ -24,6 +24,12 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        #maintenance-screen { 
+            z-index: 999999 !important; /* En üst katman */
+            background: #020617;
+            display: none; /* Varsayılan gizli */
+        }
+
         /* --- GLOW EFEKTLERİ --- */
         .glass-panel {
             background: rgba(15, 23, 42, 0.95);
@@ -105,6 +111,14 @@
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100">
+
+    <div id="maintenance-screen" class="fixed inset-0 flex-col items-center justify-center text-center p-6">
+        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-red-600 shadow-[0_0_100px_rgba(220,38,38,0.5)] animate-pulse">
+            <i class="fa-solid fa-triangle-exclamation text-8xl text-red-500 mb-6"></i>
+            <h1 class="text-5xl font-black text-white mb-2 tracking-widest">SİSTEM BAKIMDA</h1>
+            <p class="text-slate-400 text-lg">Erişim yönetici tarafından geçici olarak durduruldu.</p>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
@@ -276,6 +290,31 @@
         async function initSettings() {
             const flow = await db.collection(SETTINGS).doc('flow').get();
             if(!flow.exists) db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true});
+        }
+
+        async function initSettings() {
+            const flow = await db.collection(SETTINGS).doc('flow').get();
+            if(!flow.exists) db.collection(SETTINGS).doc('flow').set({current_speaker: 'Hakim', show_votes: true, system_locked: false});
+            
+            // BAKIM MODU DİNLEYİCİSİ
+            db.collection(SETTINGS).doc('flow').onSnapshot(doc => {
+                if(doc.exists) {
+                    const isLocked = doc.data().system_locked;
+                    const screen = document.getElementById('maintenance-screen');
+                    if(isLocked) {
+                        screen.style.display = 'flex'; // Kilitle
+                    } else {
+                        screen.style.display = 'none'; // Aç
+                    }
+                }
+            });
+
+            // BAŞLIK DİNLEYİCİSİ (Opsiyonel)
+            db.collection(SETTINGS).doc('titles').onSnapshot(doc => {
+                if(doc.exists) {
+                    // document.querySelector('h2').innerText = doc.data().uni; // Örnek
+                }
+            });
         }
 
         // --- GİRİŞ VE AVATAR ---
