@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ANLIK DELİL YANSITMA</title>
+    <title>ANLIK DELİL YANSITMA EKRANI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -25,7 +25,7 @@
         /* Neon Başlık */
         .neon-title { text-shadow: 0 0 10px #06b6d4, 0 0 20px #06b6d4; }
         
-        /* Delil Kutusu */
+        /* Delil Kutusu (Yansıtma Alanı) */
         #content-box {
             background: rgba(10, 25, 40, 0.9);
             backdrop-filter: blur(8px);
@@ -38,6 +38,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
 
         .media-container {
@@ -78,9 +79,10 @@
         const db = firebase.firestore();
 
         const EVIDENCE_PROJECTION = 'sim_evidence_projection'; // Yansıtma Koleksiyonu
-
+        
         document.addEventListener('DOMContentLoaded', () => {
             // Canlı Yansıtma Dinleyicisi
+            // Admin paneli, yüklenen delilin tam URL'sini ve tipini buraya yazar.
             db.collection(EVIDENCE_PROJECTION).doc('current').onSnapshot(doc => {
                 const data = doc.data();
                 const mediaContainer = document.getElementById('media-content');
@@ -92,14 +94,16 @@
                     mediaContainer.innerHTML = '';
                     
                     if (data.type === 'video') {
+                        // Video elementini oluştur ve oynat
                         mediaContainer.innerHTML = `<video src="${data.url}" controls autoplay class="shadow-lg"></video>`;
                     } else {
-                        // Resim, WhatsApp vb.
+                        // Resim elementini oluştur (image, whatsapp, vb.)
                         mediaContainer.innerHTML = `<img src="${data.url}" class="shadow-lg">`;
                     }
                 } else {
+                    // Yansıtma yoksa varsayılan metni göster
                     document.getElementById('evidence-title').innerText = 'ANLIK DELİL YANSITMA';
-                    document.getElementById('evidence-desc').innerText = '';
+                    document.getElementById('evidence-desc').innerText = 'Yönetici Delil Yüklemesini Bekliyor...';
                     mediaContainer.innerHTML = '<p class="text-slate-500 text-2xl font-bold">Yönetici Delil Yüklemesini Bekliyor...</p>';
                 }
             });
