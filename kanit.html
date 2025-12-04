@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANLIK DELİL YANSITMA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #050510;
+            color: #ecf0f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* Neon Başlık */
+        .neon-title { text-shadow: 0 0 10px #06b6d4, 0 0 20px #06b6d4; }
+        
+        /* Delil Kutusu */
+        #content-box {
+            background: rgba(10, 25, 40, 0.9);
+            backdrop-filter: blur(8px);
+            border: 4px solid #38bdf8;
+            box-shadow: 0 0 40px rgba(14, 165, 233, 0.5);
+            max-height: 90vh;
+            max-width: 90vw;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .media-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+        }
+        .media-container img, .media-container video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="content-box" class="w-full h-full relative">
+        <h1 id="evidence-title" class="text-4xl font-black text-cyan-400 neon-title tracking-wider uppercase mb-2">ANLIK DELİL YANSITMA</h1>
+        <p id="evidence-desc" class="text-xl font-medium text-slate-300"></p>
+        
+        <div id="media-content" class="media-container">
+            <p class="text-slate-500 text-2xl font-bold">Yönetici Delil Yüklemesini Bekliyor...</p>
+        </div>
+
+        <p id="evidence-footer" class="text-sm text-slate-400 mt-4 italic absolute bottom-4 left-1/2 transform -translate-x-1/2">Sistem Delil Dosyası</p>
+    </div>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac00df3325ec6afd" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const EVIDENCE_PROJECTION = 'sim_evidence_projection'; // Yansıtma Koleksiyonu
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Canlı Yansıtma Dinleyicisi
+            db.collection(EVIDENCE_PROJECTION).doc('current').onSnapshot(doc => {
+                const data = doc.data();
+                const mediaContainer = document.getElementById('media-content');
+                
+                if (data && data.url && data.url !== 'none') {
+                    document.getElementById('evidence-title').innerText = data.title || 'DELİL';
+                    document.getElementById('evidence-desc').innerText = data.desc || '';
+                    
+                    mediaContainer.innerHTML = '';
+                    
+                    if (data.type === 'video') {
+                        mediaContainer.innerHTML = `<video src="${data.url}" controls autoplay class="shadow-lg"></video>`;
+                    } else {
+                        // Resim, WhatsApp vb.
+                        mediaContainer.innerHTML = `<img src="${data.url}" class="shadow-lg">`;
+                    }
+                } else {
+                    document.getElementById('evidence-title').innerText = 'ANLIK DELİL YANSITMA';
+                    document.getElementById('evidence-desc').innerText = '';
+                    mediaContainer.innerHTML = '<p class="text-slate-500 text-2xl font-bold">Yönetici Delil Yüklemesini Bekliyor...</p>';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
