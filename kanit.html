@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ANLIK DELİL YANSITMA EKRANI</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -31,9 +32,9 @@
             backdrop-filter: blur(8px);
             border: 4px solid #38bdf8;
             box-shadow: 0 0 40px rgba(14, 165, 233, 0.5);
-            max-height: 90vh;
-            max-width: 90vw;
-            padding: 2.5rem;
+            max-height: 98vh;
+            max-width: 98vw;
+            padding: 2rem;
             border-radius: 1.5rem;
             display: flex;
             flex-direction: column;
@@ -41,23 +42,27 @@
             position: relative;
         }
 
+        /* Medyayı Tamamen Kaplayacak Şekilde Ayarla (CRITICAL FIX) */
         .media-container {
             flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
             width: 100%;
+            height: 100%;
             overflow: hidden;
             border-radius: 10px;
             margin-top: 1.5rem;
         }
-        .media-container img, .media-container video {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+        /* Resim ve Video'nun konteynırı doldurmasını sağla */
+        .media-container img, .media-container video, .media-container iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Görseli bozmadan sığdır */
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
         }
+        .media-container iframe { object-fit: cover; } /* iframe için cover daha iyi çalışabilir */
     </style>
 </head>
 <body>
@@ -82,7 +87,6 @@
         
         document.addEventListener('DOMContentLoaded', () => {
             // Canlı Yansıtma Dinleyicisi
-            // Admin paneli, yüklenen delilin tam URL'sini ve tipini buraya yazar.
             db.collection(EVIDENCE_PROJECTION).doc('current').onSnapshot(doc => {
                 const data = doc.data();
                 const mediaContainer = document.getElementById('media-content');
@@ -96,8 +100,12 @@
                     if (data.type === 'video') {
                         // Video elementini oluştur ve oynat
                         mediaContainer.innerHTML = `<video src="${data.url}" controls autoplay class="shadow-lg"></video>`;
+                    } else if (data.type === 'pdf') {
+                        // PDF Desteği (iframe kullanılır)
+                         mediaContainer.innerHTML = `<iframe src="${data.url}" frameborder="0" class="w-full h-full"></iframe>`;
                     } else {
                         // Resim elementini oluştur (image, whatsapp, vb.)
+                        // CSS'teki object-fit: contain, görselin bozulmadan alanı doldurmaya çalışmasını sağlar.
                         mediaContainer.innerHTML = `<img src="${data.url}" class="shadow-lg">`;
                     }
                 } else {
