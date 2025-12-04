@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Yöneticisi | Adalet Sim. - Gelişmiş Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body { background-color: #0b0c15; color: #cbd5e1; font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .sidebar-link { display: flex; align-items:center; gap: 10px; padding: 12px; border-radius: 8px; color: #94a3b8; transition: all 0.2s; cursor: pointer; }
+        .sidebar-link:hover { background: #1e293b; color: #fff; }
+        .sidebar-link.active { background: linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%); color: white; box-shadow: 0 0 15px rgba(14, 165, 233, 0.3); }
+        .card { background: #151725; border: 1px solid #2a2d3d; border-radius: 12px; padding: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #2a2d3d; }
+        .card-title { font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        input, select, textarea { background: #0f111a; border: 1px solid #334155; color: white; border-radius: 6px; padding: 8px 12px; font-size: 0.9rem; width: 100%; outline: none; transition: border 0.2s; }
+        input:focus, select:focus, textarea:focus { border-color: #38bdf8; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 999px; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay" class="fixed inset-0 z-[100] bg-[#0b0c15] flex items-center justify-center">
+        <div class="w-full max-w-sm p-8 card text-center border-t-4 border-blue-600">
+            <i class="fa-solid fa-shield-halved text-5xl text-blue-500 mb-4"></i>
+            <h2 class="text-xl font-bold text-white mb-6">SİSTEM YÖNETİCİSİ - Gelişmiş</h2>
+            <form onsubmit="adminLogin(event)" class="space-y-4">
+                <input type="text" id="adm-user" placeholder="Kullanıcı Adı" class="text-center">
+                <input type="password" id="adm-pass" placeholder="Parola" class="text-center">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition shadow-lg">GİRİŞ YAP</button>
+            </form>
+            <p id="login-error" class="text-red-500 text-xs mt-4 h-4"></p>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-[#0f111a] border-r border-[#2a2d3d] flex flex-col z-10">
+        <div class="p-6 border-b border-[#2a2d3d]">
+            <h1 class="text-xl font-black text-white tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-gavel text-yellow-400"></i> ADMİN<span class="text-blue-500"> PANEL</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1 mono">v42.1-pro</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <div class="sidebar-link active" onclick="switchPage('dashboard', this)"><i class="fa-solid fa-gauge-high"></i> Gösterge Paneli</div>
+            <div class="sidebar-link" onclick="switchPage('users', this)"><i class="fa-solid fa-users-gear"></i> Kullanıcı Yönetimi</div>
+            <div class="sidebar-link" onclick="switchPage('scenario', this)"><i class="fa-solid fa-clapperboard"></i> Senaryo Akışı</div>
+            <div class="sidebar-link" onclick="switchPage('votes', this)"><i class="fa-solid fa-check-to-slot"></i> Oylama Kontrolleri</div>
+            <div class="sidebar-link" onclick="switchPage('messages', this)"><i class="fa-solid fa-bell"></i> Bildirim & Mesaj</div>
+            <div class="sidebar-link" onclick="switchPage('logs', this)"><i class="fa-solid fa-list"></i> Kayıt Defteri (Logs)</div>
+            <div class="sidebar-link" onclick="switchPage('health', this)"><i class="fa-solid fa-heart-pulse"></i> Sistem Sağlığı</div>
+            <div class="sidebar-link text-red-400 hover:text-red-300" onclick="switchPage('danger', this)"><i class="fa-solid fa-triangle-exclamation"></i> Acil Durum</div>
+        </nav>
+        <div class="p-4 border-t border-[#2a2d3d]">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 font-bold border border-blue-800">M</div>
+                <div>
+                    <p class="text-xs font-bold text-white">Muhammet E.</p>
+                    <p class="text-[10px] text-green-500">● Yönetici</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 bg-[#0b0c15] flex flex-col min-w-0 relative">
+        <header class="h-16 border-b border-[#2a2d3d] flex justify-between items-center px-8 bg-[#0f111a]">
+            <h2 class="text-white font-bold" id="page-title">Gösterge Paneli</h2>
+            <div class="flex items-center gap-2">
+                <button onclick="exportReportPDF()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded">Raporu PDF İndir</button>
+                <button onclick="location.reload()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded">ÇIKIŞ</button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8">
+
+            <!-- DASHBOARD -->
+            <div id="page-dashboard" class="page-section">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card border-l-4 border-green-500">
+                        <div class="text-slate-400 text-xs font-bold uppercase mb-1">Aktif Jüri</div>
+                        <div class="text-3xl font-bold text-white" id="stat-seats">0</div>
+                    </div>
+                    <div class="card border-l-4 border-blue-500">
+                        <div class="text-slate-400 text-xs font-bold uppercase mb-1">Toplam Oy</div>
+                        <div class="text-3xl font-bold text-white" id="stat-votes">0</div>
+                    </div>
+                    <div class="card border-l-4 border-yellow-500">
+                        <div class="text-slate-400 text-xs font-bold uppercase mb-1">Sistem Durumu</div>
+                        <div class="text-xl font-bold text-white" id="stat-status">NORMAL</div>
+                    </div>
+                    <div class="card border-l-4 border-indigo-500">
+                        <div class="text-slate-400 text-xs font-bold uppercase mb-1">Son Admin Komutu</div>
+                        <div class="text-sm text-white mono" id="stat-lastcmd">—</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Hızlı Komutlar</span></div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="quickCmd('hide_evidence')" class="py-3 rounded bg-slate-800">Delilleri Gizle</button>
+                            <button onclick="quickCmd('start_vote')" class="py-3 rounded bg-green-700">Oylamayı Başlat</button>
+                            <button onclick="quickCmd('stop_vote')" class="py-3 rounded bg-red-700">Oylamayı Durdur</button>
+                            <button onclick="quickCmd('lock_screens')" class="py-3 rounded bg-yellow-600">Ekranları Kilitle</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Arama / Filtre</span></div>
+                        <div class="space-y-2">
+                            <input id="search-query" placeholder="Kullanıcı adı veya koltuk ara...">
+                            <div class="flex gap-2">
+                                <button onclick="searchUsers()" class="flex-1 py-2 rounded bg-blue-600">Ara</button>
+                                <button onclick="resetSearch()" class="flex-1 py-2 rounded bg-slate-700">Sıfırla</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Toplu İşlemler</span></div>
+                        <div class="space-y-2">
+                            <button onclick="bulkClearSeats()" class="w-full py-2 rounded bg-red-700">Sadece Jürileri Temizle</button>
+                            <button onclick="bulkResetScores()" class="w-full py-2 rounded bg-red-600">Puanları Sıfırla</button>
+                            <button onclick="bulkClearAllVotes()" class="w-full py-2 rounded bg-rose-600">Oyları Sıfırla</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USERS -->
+            <div id="page-users" class="page-section hidden">
+                <div class="card p-0 overflow-hidden">
+                    <div class="p-4 border-b border-[#2a2d3d] bg-[#1a1d2d]"><h3 class="font-bold text-white">Katılımcı Listesi</h3></div>
+                    <table class="w-full text-left text-sm text-slate-400">
+                        <thead class="bg-[#1a1d2d] text-slate-200 text-xs uppercase">
+                            <tr><th class="p-4">Koltuk</th><th class="p-4">İsim</th><th class="p-4">Puan</th><th class="p-4 text-right">İşlem</th></tr>
+                        </thead>
+                        <tbody id="admin-user-list" class="divide-y divide-slate-800">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Koltuk Ekle / Düzenle</span></div>
+                        <input id="new-seat-id" placeholder="Koltuk No (örn: 5)">
+                        <input id="new-seat-name" placeholder="İsim">
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="addOrUpdateSeat()" class="flex-1 py-2 rounded bg-green-600">Ekle / Güncelle</button>
+                            <button onclick="removeSeat()" class="flex-1 py-2 rounded bg-red-600">Sil</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Puan Yönetimi</span></div>
+                        <input id="score-seat" placeholder="Koltuk No">
+                        <input id="score-value" placeholder="+ veya - puan (örn: 5 veya -2)">
+                        <button onclick="adjustScore()" class="mt-2 w-full py-2 rounded bg-blue-600">Puanı Uygula</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">Kullanıcı Detay</span></div>
+                        <div id="user-detail" class="text-sm text-slate-300">Bir kullanıcı seçin.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCENARIO -->
+            <div id="page-scenario" class="page-section hidden">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Senaryo Adımlarını Yönet</span></div>
+                    <div class="space-y-3">
+                        <select id="scenario-step">
+                            <option value="intro">Giriş</option>
+                            <option value="case">Olay Tanımı</option>
+                            <option value="evidence">Delil Sunumu</option>
+                            <option value="witness">Tanık Konuşmaları</option>
+                            <option value="jury_questions">Jüri Sorgulama</option>
+                            <option value="voting">Jüri Oylama</option>
+                            <option value="verdict">Karar Açıklama</option>
+                        </select>
+                        <div class="flex gap-2">
+                            <button onclick="advanceScenario()" class="flex-1 py-2 rounded bg-green-600">Akışı Aç</button>
+                            <button onclick="lockScenario()" class="flex-1 py-2 rounded bg-rose-600">Akışı Kilitle (Geri Dönülmez)</button>
+                        </div>
+                        <textarea id="scenario-note" rows="3" placeholder="Adım için açıklama / not (opsiyonel)"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VOTES -->
+            <div id="page-votes" class="page-section hidden">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Oylama Kontrolleri</span></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="startVoting()" class="py-3 rounded bg-green-600">Oylamayı Başlat</button>
+                        <button onclick="stopVoting()" class="py-3 rounded bg-red-600">Oylamayı Durdur</button>
+                        <button onclick="resetVotes()" class="py-3 rounded bg-rose-600">Oylamaları Sıfırla</button>
+                        <button onclick="publishResults()" class="py-3 rounded bg-indigo-600">Sonuçları Yayınla</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MESSAGES -->
+            <div id="page-messages" class="page-section hidden">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Bildirim & Mesaj</span></div>
+                    <div class="space-y-2">
+                        <select id="msg-type">
+                            <option value="info">Bilgi</option>
+                            <option value="warning">Uyarı</option>
+                            <option value="critical">Kritik</option>
+                            <option value="hidden">Gizli (Sadece lider)</option>
+                        </select>
+                        <input id="msg-text" placeholder="Mesaj metni">
+                        <div class="flex gap-2">
+                            <button onclick="sendMessage()" class="flex-1 py-2 rounded bg-blue-600">Gönder</button>
+                            <button onclick="sendSilentNote()" class="flex-1 py-2 rounded bg-slate-700">Öğretmene Not</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOGS -->
+            <div id="page-logs" class="page-section hidden">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Kayıt Defteri</span></div>
+                    <div id="logs-list" class="text-sm text-slate-300 max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+
+            <!-- HEALTH -->
+            <div id="page-health" class="page-section hidden">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Sistem Sağlığı</span></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-4">
+                            <div class="text-xs text-slate-400">Son 15 dk Mesaj</div>
+                            <div id="health-messages" class="text-2xl font-bold">0</div>
+                        </div>
+                        <div class="p-4">
+                            <div class="text-xs text-slate-400">Son 15 dk Oy</div>
+                            <div id="health-votes" class="text-2xl font-bold">0</div>
+                        </div>
+                        <div class="p-4">
+                            <div class="text-xs text-slate-400">Okuma/Yazma Durumu</div>
+                            <div id="health-db" class="text-2xl font-bold">OK</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DANGER -->
+            <div id="page-danger" class="page-section hidden space-y-6">
+                <div class="card border-red-900/50 bg-red-950/10">
+                    <div class="card-header"><span class="card-title text-red-500">SİSTEM KİLİDİ (BAKIM MODU)</span></div>
+                    <p class="text-sm text-slate-400 mb-4">Bu özellik açıldığında öğrenciler "SİSTEM BAKIMDA" ekranını görür ve işlem yapamaz.</p>
+                    <button onclick="toggleMaintenance()" id="btn-maintenance" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-3 rounded font-bold">SİSTEMİ KİLİTLE</button>
+                </div>
+
+                <div class="card border-red-900/50 bg-red-950/10">
+                    <div class="card-header"><span class="card-title text-red-500">VERİTABANI SIFIRLAMA</span></div>
+                    <p class="text-sm text-slate-400 mb-4">Tüm kullanıcıları, oyları ve mesajları siler. Geri alınamaz.</p>
+                    <button onclick="wipeAllData()" class="w-full bg-red-700 hover:bg-red-600 text-white py-3 rounded font-bold">FABRİKA AYARLARINA DÖN</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // FIREBASE CONFIG
+        const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac006df3325ec6afd" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // PAGE SWITCH
+        window.switchPage = function(pageId, btn) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('page-' + pageId);
+            if(target) target.classList.remove('hidden');
+            document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            const titles = { 'dashboard': 'Gösterge Paneli', 'users': 'Kullanıcı Yönetimi', 'scenario': 'Senaryo Akışı', 'votes': 'Oylama Kontrolleri', 'messages': 'Bildirim & Mesaj', 'logs': 'Kayıt Defteri', 'health': 'Sistem Sağlığı', 'danger': 'Acil Durum' };
+            document.getElementById('page-title').innerText = titles[pageId] || 'Panel';
+        }
+
+        // LOGIN
+        function adminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('adm-user').value;
+            const p = document.getElementById('adm-pass').value;
+            if(u === 'muhammet' && p === 'muhammet25') {
+                document.getElementById('login-overlay').classList.add('hidden');
+                initDataListeners();
+            } else {
+                document.getElementById('login-error').innerText = 'Hatalı kimlik bilgileri!';
+            }
+        }
+
+        // INIT LISTENERS
+        function initDataListeners(){
+            db.collection('sim_seats').orderBy('seatId').onSnapshot(async (snap)=>{
+                document.getElementById('stat-seats').innerText = snap.size;
+                const list = document.getElementById('admin-user-list'); list.innerHTML = '';
+                const scoresSnap = await db.collection('sim_scores').get(); const scores = {}; scoresSnap.forEach(d=>scores[d.id]=d.data().val);
+                snap.forEach(doc=>{
+                    const d = doc.data();
+                    list.innerHTML += `\n                    <tr class="border-b border-slate-800 hover:bg-slate-800/50">\n                        <td class="p-4 font-mono text-yellow-500">#${d.seatId}</td>\n                        <td class="p-4 font-bold text-white">${d.name}</td>\n                        <td class="p-4 text-blue-400 font-mono">${scores[d.seatId]||0}</td>\n                        <td class="p-4 text-right">\n                            <button onclick="kickUser('${d.seatId}')" class="text-red-500 hover:text-white border border-red-900 hover:bg-red-600 px-3 py-1 rounded text-xs">AT</button>\n                            <button onclick="selectUser('${d.seatId}')" class="ml-2 text-slate-300 border border-slate-700 px-3 py-1 rounded text-xs">DETAY</button>\n                        </td>\n                    </tr>`;
+                });
+            });
+
+            db.collection('sim_votes').onSnapshot(s=>document.getElementById('stat-votes').innerText = s.size);
+
+            db.collection('sim_settings').doc('flow').onSnapshot(doc=>{
+                if(doc.exists){
+                    const locked = doc.data().system_locked;
+                    const btn = document.getElementById('btn-maintenance');
+                    const stat = document.getElementById('stat-status');
+                    if(locked){ btn.innerText = 'KİLİDİ AÇ (SİSTEMİ AKTİF ET)'; btn.className = 'w-full bg-green-600 hover:bg-green-500 text-white py-3 rounded font-bold'; stat.innerText='BAKIMDA (KİLİTLİ)'; stat.classList.add('text-red-500'); }
+                    else { btn.innerText='SİSTEMİ KİLİTLE'; btn.className='w-full bg-yellow-600 hover:bg-yellow-500 text-white py-3 rounded font-bold'; stat.innerText='AKTİF'; stat.classList.remove('text-red-500'); }
+                }
+            });
+
+            // Logs listener (last 200)
+            db.collection('sim_logs').orderBy('timestamp','desc').limit(200).onSnapshot(snap=>{
+                const container = document.getElementById('logs-list'); container.innerHTML = '';
+                snap.forEach(d=>{ const o = d.data(); const t = o.timestamp ? new Date(o.timestamp.seconds*1000).toLocaleString() : '-'; container.innerHTML += `<div class='p-2 border-b border-slate-800'><div class='text-xs text-slate-500'>${t} — ${o.type}</div><div class='text-sm'>${o.msg}</div></div>` });
+            });
+
+            // Health stats (simple): compute last 15 minutes
+            setInterval(async ()=>{
+                const since = new Date(Date.now()-15*60*1000);
+                const msgSnap = await db.collection('sim_chat').where('timestamp','>=', firebase.firestore.Timestamp.fromDate(since)).get();
+                const voteSnap = await db.collection('sim_votes').where('timestamp','>=', firebase.firestore.Timestamp.fromDate(since)).get().catch(()=>({size:0}));
+                document.getElementById('health-messages').innerText = msgSnap.size || 0;
+                document.getElementById('health-votes').innerText = voteSnap.size || 0;
+                document.getElementById('health-db').innerText = 'OK';
+            }, 15000);
+        }
+
+        // UTIL: write log
+        async function writeLog(type, msg){
+            await db.collection('sim_logs').add({ type, msg, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            document.getElementById('stat-lastcmd').innerText = `${type}: ${msg}`;
+        }
+
+        // USER ACTIONS
+        window.kickUser = function(seatId){ if(confirm(`Kullanıcı #${seatId} atılsın mı?`)){ db.collection('sim_seats').doc(String(seatId)).delete(); writeLog('KICK', `Kullanıcı #${seatId} atıldı.`); } }
+        window.selectUser = async function(seatId){ const doc = await db.collection('sim_seats').doc(String(seatId)).get(); if(!doc.exists) return alert('Kayıt bulunamadı'); const d = doc.data(); document.getElementById('user-detail').innerHTML = `<div><strong>#${d.seatId} — ${d.name}</strong><div class='text-xs mt-1'>Meta: ${JSON.stringify(d.meta||{})}</div></div>`; }
+
+        // SEAT MANAGEMENT
+        window.addOrUpdateSeat = async function(){ const id = document.getElementById('new-seat-id').value; const name = document.getElementById('new-seat-name').value; if(!id||!name) return alert('Eksik bilgi'); await db.collection('sim_seats').doc(String(id)).set({ seatId: Number(id), name }, { merge:true }); await writeLog('SEAT_UPSERT', `Koltuk ${id} eklendi/güncellendi.`); alert('Koltuk eklendi/güncellendi'); }
+        window.removeSeat = async function(){ const id = document.getElementById('new-seat-id').value; if(!id) return alert('Koltuk numarası girin'); if(!confirm('Silinsin mi?')) return; await db.collection('sim_seats').doc(String(id)).delete(); await writeLog('SEAT_DELETE', `Koltuk ${id} silindi.`); alert('Koltuk silindi'); }
+
+        // SCORE MANAGEMENT
+        window.adjustScore = async function(){ const id = document.getElementById('score-seat').value; const v = Number(document.getElementById('score-value').value); if(!id || isNaN(v)) return alert('Geçerli koltuk ve puan girin'); const ref = db.collection('sim_scores').doc(String(id)); const snap = await ref.get(); const cur = snap.exists ? snap.data().val : 0; await ref.set({ val: cur + v }); await writeLog('SCORE_ADJUST', `Koltuk ${id} puan ${v} uygulandı.`); alert('Puan güncellendi'); }
+
+        // BULK
+        async function bulkClearSeats(){ if(!confirm('Tüm jürileri silmek istediğinize emin misiniz? Oylar etkilenmeyecek.')) return; const snap = await db.collection('sim_seats').get(); const batch = db.batch(); snap.docs.forEach(d=>batch.delete(d.ref)); await batch.commit(); await writeLog('BULK_SEAT_CLEAR','Tüm jüriler silindi'); alert('Jüriler temizlendi'); }
+        async function bulkResetScores(){ if(!confirm('Tüm puanları sıfırlamak istediğinize emin misiniz?')) return; const snap = await db.collection('sim_scores').get(); const batch = db.batch(); snap.docs.forEach(d=>batch.set(d.ref,{val:0})); await batch.commit(); await writeLog('BULK_SCORES_RESET','Tüm puanlar sıfırlandı'); alert('Puanlar sıfırlandı'); }
+        async function bulkClearAllVotes(){ if(!confirm('Tüm oyları sıfırlamak istediğinize emin misiniz?')) return; const snap = await db.collection('sim_votes').get(); const batch = db.batch(); snap.docs.forEach(d=>batch.delete(d.ref)); await batch.commit(); await writeLog('BULK_VOTES_CLEAR','Tüm oylar silindi'); alert('Oylar sıfırlandı'); }
+
+        // SEARCH
+        function searchUsers(){ const q = document.getElementById('search-query').value.trim(); if(!q) return; db.collection('sim_seats').orderBy('seatId').startAt(q).endAt(q + '\uf8ff').get().then(snap=>{ const list = document.getElementById('admin-user-list'); list.innerHTML=''; snap.forEach(doc=>{ const d=doc.data(); list.innerHTML += `<tr class='border-b border-slate-800'><td class='p-4 font-mono text-yellow-500'>#${d.seatId}</td><td class='p-4 font-bold text-white'>${d.name}</td><td class='p-4 text-blue-400 font-mono'>-</td><td class='p-4'></td></tr>`; }); }); }
+        function resetSearch(){ document.getElementById('search-query').value=''; initDataListeners(); }
+
+        // QUICK COMMANDS
+        async function quickCmd(cmd){ switch(cmd){ case 'hide_evidence': await db.collection('sim_settings').doc('ui').set({ show_evidence:false },{merge:true}); await writeLog('CMD','Deliller gizlendi'); alert('Deliller gizlendi'); break; case 'start_vote': startVoting(); break; case 'stop_vote': stopVoting(); break; case 'lock_screens': toggleMaintenance(); break; } }
+
+        // SCENARIO
+        async function advanceScenario(){ const step = document.getElementById('scenario-step').value; const note = document.getElementById('scenario-note').value; await db.collection('sim_settings').doc('scenario').set({ step, note, timestamp: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true }); await writeLog('SCENARIO_ADV', `${step} adımı açıldı`); alert('Senaryo adımı açıldı'); }
+        async function lockScenario(){ if(!confirm('Bu akımı kilitlemek geri alınamaz. Onaylıyor musunuz?')) return; await db.collection('sim_settings').doc('scenario').set({ locked:true },{merge:true}); await writeLog('SCENARIO_LOCK','Senaryo kilitlendi'); alert('Senaryo kilitlendi'); }
+
+        // VOTING
+        async function startVoting(){ await db.collection('sim_settings').doc('voting').set({ active:true, startedAt: firebase.firestore.FieldValue.serverTimestamp() },{merge:true}); await writeLog('VOTE','Oylama başlatıldı'); alert('Oylama başlatıldı'); }
+        async function stopVoting(){ await db.collection('sim_settings').doc('voting').set({ active:false, stoppedAt: firebase.firestore.FieldValue.serverTimestamp() },{merge:true}); await writeLog('VOTE','Oylama durduruldu'); alert('Oylama durduruldu'); }
+        async function resetVotes(){ if(!confirm('Oyları sıfırlamak istediğinize emin misiniz?')) return; const snap = await db.collection('sim_votes').get(); const batch = db.batch(); snap.docs.forEach(d=>batch.delete(d.ref)); await batch.commit(); await writeLog('VOTE_RESET','Oylar sıfırlandı'); alert('Oylar sıfırlandı'); }
+        async function publishResults(){ const votes = await db.collection('sim_votes').get(); // örnek özet
+            const summary = {};
+            votes.forEach(v=>{ const d=v.data(); summary[d.choice]= (summary[d.choice]||0)+1; });
+            await db.collection('sim_notifications').add({ type:'results', summary, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+            await writeLog('PUBLISH_RESULTS','Oylama sonuçları yayınlandı'); alert('Sonuçlar yayınlandı'); }
+
+        // MESSAGES
+        async function sendMessage(){ const type = document.getElementById('msg-type').value; const text = document.getElementById('msg-text').value; if(!text) return alert('Mesaj boş'); await db.collection('sim_notifications').add({ type, text, from:'admin', timestamp: firebase.firestore.FieldValue.serverTimestamp() }); await writeLog('MSG','Admin mesajı: '+text); alert('Mesaj gönderildi'); }
+        async function sendSilentNote(){ const text = document.getElementById('msg-text').value; if(!text) return alert('Mesaj boş'); await db.collection('sim_notifications').add({ type:'silent', text, to:'teacher', from:'admin', timestamp: firebase.firestore.FieldValue.serverTimestamp() }); await writeLog('MSG_SILENT','Öğretmene not: '+text); alert('Öğretmene gizli not gönderildi'); }
+
+        // MAINTENANCE
+        window.toggleMaintenance = function(){ const ref = db.collection('sim_settings').doc('flow'); ref.get().then(d=>{ ref.set({ system_locked: !d.data().system_locked }, { merge: true }); writeLog('MAINT_TOGGLE','Maintenance toggle'); }); }
+
+        // WIPE
+        window.wipeAllData = async function(){ if(prompt("Onaylamak için SİL yazın") !== 'SİL') return; const cols = ['sim_seats','sim_votes','sim_quizzes','sim_scores','sim_chat','sim_speak_requests','sim_notifications','sim_answers','sim_sentiment']; for(const col of cols){ const snap = await db.collection(col).get(); const batch = db.batch(); snap.docs.forEach(d=>batch.delete(d.ref)); await batch.commit(); } await writeLog('Wipe','Tam sistem sıfırlaması yapıldı'); alert('Sistem temizlendi.'); }
+
+        // EXPORT PDF
+        async function exportReportPDF(){ const { jsPDF } = window.jspdf; const doc = new jsPDF(); doc.setFontSize(14); doc.text('Mahkeme Simülasyonu Raporu', 14, 20);
+            const seats = await db.collection('sim_seats').get(); let y = 30; doc.setFontSize(10);
+            doc.text('Koltuklar ve Katılımcılar:', 14, y); y+=6;
+            seats.forEach(s=>{ const d=s.data(); doc.text(`#${d.seatId} - ${d.name}`, 14, y); y+=5; if(y>280){ doc.addPage(); y=20 } });
+            doc.save('simulasyon_report.pdf'); await writeLog('EXPORT','PDF raporu indirildi'); }
+
+        // ON LOAD: no evidence upload UI included (istek üzerine kaldırıldı). Hemen login bekleniyor.
+    </script>
+</body>
+</html>
