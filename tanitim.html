@@ -311,6 +311,7 @@
                     <form onsubmit="submitRegistration(event)" class="space-y-3 text-sm">
                         <input type="text" id="reg-name" placeholder="Adınız Soyadınız" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-white" required>
                         <input type="email" id="reg-email" placeholder="E-posta Adresiniz" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-white" required>
+                        <input type="tel" id="reg-phone" placeholder="Telefon Numaranız (05XX...)" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none" required>
                         <select id="reg-role" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-white">
                             <option value="">Hangi Rolde Katılmak İstersiniz?</option>
                             <option value="Juri">Jüri Üyesi</option>
@@ -346,6 +347,7 @@
             e.preventDefault();
             const name = document.getElementById('reg-name').value;
             const email = document.getElementById('reg-email').value;
+            const phone = document.getElementById('reg-phone').value;
             const role = document.getElementById('reg-role').value;
 
             if (!name || !email || !role) {
@@ -357,6 +359,7 @@
                 await db.collection(REGISTRATIONS).add({
                     name: name,
                     email: email,
+		    phone: phone,
                     role: role,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
@@ -437,5 +440,4 @@
 </body>
 
 </html>
-
 
