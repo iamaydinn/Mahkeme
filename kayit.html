@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Yönetim Paneli | Adalet Sim.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- jsPDF kütüphanelerine artık gerek yok, tarayıcı motorunu kullanacağız -->
+
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        
+        /* Kart Stili */
+        .stat-card {
+            background: #1e293b;
+            border-left: 4px solid;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Tablo Stili */
+        .custom-table th { background-color: #1e293b; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px; }
+        .custom-table td { padding: 12px; border-bottom: 1px solid #334155; font-size: 0.875rem; }
+        .custom-table tr:hover { background-color: #1e293b; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+
+        /* --- PDF / YAZDIRMA MODU STİLLERİ (TÜRKÇE KARAKTER FIX) --- */
+        @media print {
+            body { background-color: white !important; color: black !important; overflow: visible !important; height: auto !important; }
+            #main-panel { display: block !important; overflow: visible !important; height: auto !important; }
+            
+            /* Gereksiz butonları gizle */
+            header button, .text-right button, #login-overlay { display: none !important; }
+            
+            /* Tablo "İşlem" sütununu gizle */
+            .custom-table th:last-child, .custom-table td:last-child { display: none !important; }
+
+            /* Rapor formatı düzenlemeleri */
+            header { background: white !important; border-bottom: 2px solid black !important; color: black !important; padding: 0 !important; margin-bottom: 20px !important; }
+            header h1 { color: black !important; font-size: 24px !important; }
+            
+            .stat-card { 
+                background: white !important; 
+                border: 1px solid #ddd !important; 
+                color: black !important; 
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+            .stat-card div { color: black !important; }
+
+            .bg-slate-900 { background: white !important; border: none !important; box-shadow: none !important; }
+            .custom-table th { background-color: #f3f4f6 !important; color: black !important; border-bottom: 2px solid black !important; }
+            .custom-table td { color: black !important; border-bottom: 1px solid #ddd !important; }
+            .custom-table tr:hover { background-color: transparent !important; }
+            
+            /* Badge renklerini baskı için düzelt */
+            .bg-yellow-900\/30 { background-color: #fef08a !important; color: #854d0e !important; border: 1px solid #854d0e; }
+            .bg-green-900\/30 { background-color: #bbf7d0 !important; color: #166534 !important; border: 1px solid #166534; }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+    <!-- GİRİŞ EKRANI -->
+    <div id="login-overlay" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
+        <div class="w-full max-w-sm p-8 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl text-center">
+            <div class="mb-4 text-blue-500"><i class="fa-solid fa-users-viewfinder text-5xl"></i></div>
+            <h2 class="text-xl font-bold text-white mb-2">KAYIT YÖNETİMİ</h2>
+            <p class="text-xs text-slate-500 mb-6">Sadece organizasyon yetkilileri içindir.</p>
+            <form onsubmit="panelLogin(event)" class="space-y-4">
+                <input type="text" id="adm-user" placeholder="Kullanıcı Adı" class="w-full bg-slate-800 border border-slate-700 p-3 rounded text-center outline-none focus:border-blue-500 text-white">
+                <input type="password" id="adm-pass" placeholder="Şifre" class="w-full bg-slate-800 border border-slate-700 p-3 rounded text-center outline-none focus:border-blue-500 text-white">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition">GİRİŞ YAP</button>
+            </form>
+            <p id="login-error" class="text-red-500 text-xs mt-4 h-4"></p>
+        </div>
+    </div>
+
+    <!-- ANA PANEL -->
+    <div id="main-panel" class="hidden flex-1 flex flex-col h-full">
+        <!-- Header -->
+        <header class="h-16 border-b border-slate-800 bg-slate-900 flex justify-between items-center px-8 shadow-md shrink-0">
+            <h1 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-list text-yellow-400"></i> BAŞVURU LİSTESİ
+            </h1>
+            <div class="flex gap-3">
+                <button onclick="downloadPDF()" class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded text-xs font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> PDF / YAZDIR
+                </button>
+                <button onclick="clearAllData()" class="bg-red-900/50 hover:bg-red-800 text-red-200 border border-red-800 px-4 py-2 rounded text-xs font-bold transition">
+                    LİSTEYİ TEMİZLE
+                </button>
+                <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded text-xs font-bold transition">ÇIKIŞ</button>
+            </div>
+        </header>
+
+        <!-- İçerik -->
+        <div class="flex-1 overflow-y-auto p-8">
+            
+            <!-- İstatistikler -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="stat-card border-blue-500">
+                    <div class="text-slate-400 text-xs font-bold uppercase">Toplam Başvuru</div>
+                    <div class="text-3xl font-bold text-white mt-1" id="count-total">0</div>
+                </div>
+                <div class="stat-card border-yellow-500">
+                    <div class="text-slate-400 text-xs font-bold uppercase">Jüri Adayları</div>
+                    <div class="text-3xl font-bold text-yellow-400 mt-1" id="count-jury">0</div>
+                </div>
+                <div class="stat-card border-green-500">
+                    <div class="text-slate-400 text-xs font-bold uppercase">Gözlemciler</div>
+                    <div class="text-3xl font-bold text-green-400 mt-1" id="count-observer">0</div>
+                </div>
+            </div>
+
+            <!-- Tablo -->
+            <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left custom-table">
+                        <thead>
+                            <tr>
+                                <th>Adı Soyadı</th>
+                                <th>Rol Tercihi</th>
+                                <th>E-Posta</th>
+                                <th>Başvuru Tarihi</th>
+                                <th class="text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registration-table" class="text-slate-300">
+                            <!-- JS ile doldurulacak -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Boş Veri Mesajı -->
+                <div id="empty-msg" class="hidden p-8 text-center text-slate-500 text-sm">
+                    Henüz hiç başvuru yapılmamış.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // FIREBASE YAPILANDIRMASI
+        const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac00df3325ec6afd" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const REGISTRATIONS = 'sim_registrations';
+
+        // --- GİRİŞ ---
+        function panelLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('adm-user').value;
+            const p = document.getElementById('adm-pass').value;
+            if(u === 'muhammet' && p === 'muhammet25') {
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('main-panel').classList.remove('hidden');
+                initListener();
+            } else {
+                document.getElementById('login-error').innerText = 'Hatalı kullanıcı adı veya şifre!';
+            }
+        }
+
+        // --- VERİ DİNLEME ---
+        function initListener() {
+            db.collection(REGISTRATIONS).orderBy('timestamp', 'desc').onSnapshot(snap => {
+                const tbody = document.getElementById('registration-table');
+                const emptyMsg = document.getElementById('empty-msg');
+                
+                let total = snap.size;
+                let jury = 0;
+                let observer = 0;
+                
+                tbody.innerHTML = '';
+
+                if(total === 0) {
+                    emptyMsg.classList.remove('hidden');
+                } else {
+                    emptyMsg.classList.add('hidden');
+                }
+
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const date = d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleString('tr-TR') : 'Bilinmiyor';
+                    
+                    if(d.role === 'Juri') jury++;
+                    else observer++;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="font-bold text-white">${d.name}</td>
+                        <td><span class="px-2 py-1 rounded text-xs font-bold ${d.role === 'Juri' ? 'bg-yellow-900/30 text-yellow-500' : 'bg-green-900/30 text-green-500'}">${d.role}</span></td>
+                        <td class="text-slate-400 font-mono text-xs">${d.email}</td>
+                        <td class="text-slate-500 text-xs">${date}</td>
+                        <td class="text-right">
+                            <button onclick="deleteEntry('${doc.id}')" class="text-red-500 hover:text-red-400 hover:bg-red-900/20 px-3 py-1 rounded transition text-xs border border-red-900/50">SİL</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('count-total').innerText = total;
+                document.getElementById('count-jury').innerText = jury;
+                document.getElementById('count-observer').innerText = observer;
+            });
+        }
+
+        // --- İŞLEMLER ---
+        window.deleteEntry = function(id) {
+            if(confirm('Bu başvuru kaydı silinecek. Emin misiniz?')) {
+                db.collection(REGISTRATIONS).doc(id).delete();
+            }
+        }
+
+        window.clearAllData = async function() {
+            if(confirm('DİKKAT: Tüm başvuru listesi kalıcı olarak silinecek!\nBu işlem geri alınamaz.\nDevam etmek istiyor musunuz?')) {
+                const snap = await db.collection(REGISTRATIONS).get();
+                const batch = db.batch();
+                snap.docs.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                alert('Liste temizlendi.');
+            }
+        }
+
+        // --- YAZDIRMA (PDF FIX) ---
+        window.downloadPDF = function() {
+            // PDF kitaplığı yerine tarayıcının native yazdırma özelliğini kullanıyoruz.
+            // Bu yöntem Türkçe karakterleri %100 doğru gösterir.
+            // Kullanıcı açılan pencereden "PDF Olarak Kaydet"i seçebilir.
+            window.print();
+        }
+    </script>
+</body>
+</html>
