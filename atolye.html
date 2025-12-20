@@ -22,22 +22,64 @@
             font-family: 'Outfit', sans-serif; 
             background-color: #0f172a; 
             color: #f8fafc;
-            background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
             min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- ARKA PLAN ANİMASYONU --- */
+        #background-animation {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; overflow: hidden;
+            background: #0f172a; /* Fallback */
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: moveBlob 20s infinite alternate;
+        }
+        .blob-1 {
+            width: 600px; height: 600px;
+            background: rgba(37, 99, 235, 0.3); /* Blue */
+            top: -10%; left: -10%;
+        }
+        .blob-2 {
+            width: 500px; height: 500px;
+            background: rgba(6, 182, 212, 0.3); /* Cyan */
+            bottom: -10%; right: -10%;
+            animation-delay: -5s;
+        }
+        .blob-3 {
+            width: 400px; height: 400px;
+            background: rgba(147, 51, 234, 0.2); /* Purple */
+            top: 40%; left: 40%;
+            animation-delay: -10s;
+        }
+
+        @keyframes moveBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, 100px) scale(1.1); }
+            66% { transform: translate(-50px, 50px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
         }
 
         /* Cam Efekti Kartlar */
         .glass-card {
             background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
         .glass-card:hover {
             transform: translateY(-5px);
-            border-color: rgba(56, 189, 248, 0.5);
-            box-shadow: 0 10px 40px -10px rgba(56, 189, 248, 0.3);
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 10px 40px -10px rgba(56, 189, 248, 0.25);
+            background: rgba(30, 41, 59, 0.6);
         }
 
         /* Başlatıcı Kartları */
@@ -52,105 +94,125 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
             transform: translateX(-100%);
-            transition: 0.5s;
+            transition: 0.6s;
         }
         .launcher-card:hover::before { transform: translateX(100%); }
 
         /* QR Alanı */
-        #qrcode img { margin: 0 auto; border: 4px solid white; border-radius: 8px; }
+        #qrcode img { margin: 0 auto; border: 4px solid white; border-radius: 12px; }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
+    <!-- ARKA PLAN ANİMASYONU -->
+    <div id="background-animation">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
     <!-- ÜST BİLGİ ÇUBUĞU -->
-    <header class="h-20 border-b border-slate-800 bg-slate-900/80 flex justify-between items-center px-8 shrink-0">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
-                A
+    <header class="h-24 border-b border-slate-700/50 bg-slate-900/60 backdrop-blur-md flex justify-between items-center px-10 shrink-0 z-10">
+        <div class="flex items-center gap-5">
+            <!-- LOGO DEĞİŞİKLİĞİ -->
+            <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden p-1">
+                <img src="https://upload.wikimedia.org/wikipedia/tr/c/cc/Ataturkuni_logo.png?20200406213338" alt="Atatürk Üniversitesi Logo" class="object-contain w-full h-full">
             </div>
             <div>
-                <h1 class="text-xl font-bold tracking-wide text-white">ADALET SİMÜLASYONU</h1>
-                <p class="text-xs text-blue-400 font-medium tracking-widest uppercase">Akademik Çalıştay Sunumu</p>
+                <h1 class="text-2xl font-black tracking-wide text-white drop-shadow-sm">ADALET SİMÜLASYONU</h1>
+                <p class="text-xs text-cyan-400 font-bold tracking-[0.2em] uppercase">Akademik Çalıştay Sunumu</p>
             </div>
         </div>
-        <div class="flex items-center gap-6 text-sm">
-            <div class="text-right">
-                <p class="text-slate-400">Sunan</p>
-                <p class="font-bold text-white">Muhammet Emin Aydın</p>
+        <div class="flex items-center gap-8 text-sm">
+            <div class="text-right hidden md:block">
+                <p class="text-slate-400 text-xs uppercase tracking-wider">Sunan</p>
+                <p class="font-bold text-white text-lg">Muhammet Emin Aydın</p>
             </div>
-            <div class="h-8 w-px bg-slate-700"></div>
+            <div class="h-10 w-px bg-slate-700 hidden md:block"></div>
             <div class="text-right">
-                <p class="text-slate-400">Tarih</p>
-                <p class="font-bold text-white" id="current-date">--.--.----</p>
+                <p class="text-slate-400 text-xs uppercase tracking-wider">Tarih</p>
+                <p class="font-bold text-white text-lg font-mono" id="current-date">--.--.----</p>
             </div>
         </div>
     </header>
 
     <!-- ANA İÇERİK -->
-    <main class="flex-1 overflow-y-auto p-8 grid grid-cols-12 gap-8">
+    <main class="flex-1 overflow-y-auto p-10 grid grid-cols-12 gap-10 z-10 relative">
         
         <!-- SOL SÜTUN: KONTROL MERKEZİ (LAUNCHER) -->
-        <div class="col-span-12 lg:col-span-8 flex flex-col gap-8">
+        <div class="col-span-12 lg:col-span-8 flex flex-col gap-10">
             
             <!-- Başlatıcılar -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div onclick="window.open('index.html', '_blank')" class="glass-card launcher-card p-6 flex flex-col items-center justify-center gap-3 text-center group">
-                    <div class="w-14 h-14 rounded-full bg-blue-900/50 text-blue-400 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <i class="fa-solid fa-users"></i>
+            <div>
+                <h2 class="text-white font-bold text-lg mb-4 flex items-center gap-2 opacity-80"><i class="fa-solid fa-rocket text-blue-400"></i> Hızlı Erişim Modülleri</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+                    <div onclick="window.open('index.html', '_blank')" class="glass-card launcher-card p-6 flex flex-col items-center justify-center gap-4 text-center group h-40">
+                        <div class="w-14 h-14 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-100 text-lg">Jüri Ekranı</h3>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block mt-1 group-hover:text-blue-300">Giriş Paneli</span>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-slate-200">Jüri Ekranı</h3>
-                    <span class="text-[10px] text-slate-500 uppercase tracking-wider">Simülasyon Girişi</span>
-                </div>
 
-                <div onclick="window.open('index.html', '_blank')" class="glass-card launcher-card p-6 flex flex-col items-center justify-center gap-3 text-center group">
-                    <div class="w-14 h-14 rounded-full bg-cyan-900/50 text-cyan-400 flex items-center justify-center text-2xl group-hover:bg-cyan-600 group-hover:text-white transition-colors">
-                        <i class="fa-solid fa-tv"></i>
+                    <div onclick="window.open('index.html', '_blank')" class="glass-card launcher-card p-6 flex flex-col items-center justify-center gap-4 text-center group h-40">
+                        <div class="w-14 h-14 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-2xl group-hover:bg-cyan-500 group-hover:text-white transition-colors duration-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                            <i class="fa-solid fa-tv"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-100 text-lg">Akıllı Tahta</h3>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block mt-1 group-hover:text-cyan-300">Canlı Yansıtma</span>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-slate-200">Akıllı Tahta</h3>
-                    <span class="text-[10px] text-slate-500 uppercase tracking-wider">Canlı Yansıtma</span>
-                </div>
 
-                <div onclick="window.open('duvar.html', '_blank')" class="glass-card launcher-card p-6 flex flex-col items-center justify-center gap-3 text-center group">
-                    <div class="w-14 h-14 rounded-full bg-purple-900/50 text-purple-400 flex items-center justify-center text-2xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                        <i class="fa-solid fa-comments"></i>
+                    <div onclick="window.open('duvar.html', '_blank')" class="glass-card launcher-card p-6 flex flex-col items-center justify-center gap-4 text-center group h-40">
+                        <div class="w-14 h-14 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl group-hover:bg-purple-500 group-hover:text-white transition-colors duration-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-100 text-lg">Gerekçe Duvarı</h3>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block mt-1 group-hover:text-purple-300">Analiz Ekranı</span>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-slate-200">Gerekçe Duvarı</h3>
-                    <span class="text-[10px] text-slate-500 uppercase tracking-wider">Analiz Ekranı</span>
-                </div>
 
-                <div onclick="window.open('admin.html', '_blank')" class="glass-card launcher-card p-6 flex flex-col items-center justify-center gap-3 text-center group border-red-900/30">
-                    <div class="w-14 h-14 rounded-full bg-red-900/20 text-red-500 flex items-center justify-center text-2xl group-hover:bg-red-600 group-hover:text-white transition-colors">
-                        <i class="fa-solid fa-lock"></i>
+                    <div onclick="window.open('admin.html', '_blank')" class="glass-card launcher-card p-6 flex flex-col items-center justify-center gap-4 text-center group border-red-500/30 h-40">
+                        <div class="w-14 h-14 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center text-2xl group-hover:bg-red-600 group-hover:text-white transition-colors duration-300 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-100 text-lg">Yönetici</h3>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block mt-1 group-hover:text-red-300">Kontrol Paneli</span>
+                        </div>
                     </div>
-                    <h3 class="font-bold text-slate-200">Yönetici</h3>
-                    <span class="text-[10px] text-slate-500 uppercase tracking-wider">Kontrol Paneli</span>
                 </div>
             </div>
 
             <!-- Akademik Analiz Grafikleri -->
-            <div class="glass-card p-6 flex-1 flex flex-col">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-yellow-500"></i> Akademik Veri Analizi
+            <div class="glass-card p-8 flex-1 flex flex-col shadow-2xl">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3">
+                        <span class="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center text-yellow-400"><i class="fa-solid fa-chart-pie"></i></span>
+                        Akademik Veri Analizi
                     </h2>
-                    <span class="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300">Canlı Veri</span>
+                    <span class="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full animate-pulse font-bold">● Canlı Veri Akışı</span>
                 </div>
-                <div class="grid grid-cols-2 gap-8 h-64">
+                <div class="grid grid-cols-2 gap-12 h-64">
                     <div class="relative w-full h-full flex items-center justify-center">
                         <canvas id="voteChart"></canvas>
                     </div>
-                    <div class="flex flex-col justify-center gap-4">
-                        <div class="bg-slate-800/50 p-4 rounded-lg border-l-4 border-red-500">
-                            <span class="text-xs text-slate-400 uppercase">Suçlu Oyu</span>
-                            <div class="text-2xl font-bold text-white" id="count-guilty">0</div>
+                    <div class="flex flex-col justify-center gap-5">
+                        <div class="bg-slate-900/40 p-4 rounded-xl border-l-4 border-red-500 flex justify-between items-center">
+                            <span class="text-xs text-slate-400 uppercase font-bold tracking-wider">Suçlu Oyu</span>
+                            <div class="text-3xl font-black text-white" id="count-guilty">0</div>
                         </div>
-                        <div class="bg-slate-800/50 p-4 rounded-lg border-l-4 border-green-500">
-                            <span class="text-xs text-slate-400 uppercase">Suçsuz Oyu</span>
-                            <div class="text-2xl font-bold text-white" id="count-notguilty">0</div>
+                        <div class="bg-slate-900/40 p-4 rounded-xl border-l-4 border-green-500 flex justify-between items-center">
+                            <span class="text-xs text-slate-400 uppercase font-bold tracking-wider">Suçsuz Oyu</span>
+                            <div class="text-3xl font-black text-white" id="count-notguilty">0</div>
                         </div>
-                        <div class="bg-slate-800/50 p-4 rounded-lg border-l-4 border-blue-500">
-                            <span class="text-xs text-slate-400 uppercase">Toplam Katılım</span>
-                            <div class="text-2xl font-bold text-white" id="count-total">0</div>
+                        <div class="bg-slate-900/40 p-4 rounded-xl border-l-4 border-blue-500 flex justify-between items-center">
+                            <span class="text-xs text-slate-400 uppercase font-bold tracking-wider">Toplam Katılım</span>
+                            <div class="text-3xl font-black text-white" id="count-total">0</div>
                         </div>
                     </div>
                 </div>
@@ -159,29 +221,44 @@
         </div>
 
         <!-- SAĞ SÜTUN: BAĞLANTI (QR) -->
-        <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+        <div class="col-span-12 lg:col-span-4 flex flex-col gap-8">
             
-            <div class="glass-card p-8 text-center bg-gradient-to-b from-slate-800/50 to-slate-900/50">
-                <h3 class="text-xl font-bold text-white mb-2">Simülasyona Katıl</h3>
-                <p class="text-sm text-slate-400 mb-6">Telefonunuzun kamerasını okutarak jüri paneline hemen erişin.</p>
+            <div class="glass-card p-10 text-center bg-gradient-to-b from-slate-800/40 to-slate-900/60 border-t-4 border-blue-500">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-black text-white mb-2">SİMÜLASYONA KATIL</h3>
+                    <p class="text-sm text-slate-400">Mobil cihazınızla QR kodu okutarak jüri paneline anında erişin.</p>
+                </div>
                 
-                <div class="bg-white p-4 rounded-xl inline-block shadow-2xl mb-4">
+                <div class="bg-white p-4 rounded-2xl inline-block shadow-[0_0_30px_rgba(255,255,255,0.15)] mb-6 transform hover:scale-105 transition duration-500">
                     <div id="qrcode"></div>
                 </div>
                 
-                <div class="mt-4 p-3 bg-slate-800 rounded-lg border border-slate-700">
-                    <p class="text-[10px] text-slate-500 mb-1">ERİŞİM LİNKİ</p>
-                    <p class="text-xs font-mono text-blue-400 truncate" id="access-link">...</p>
+                <div class="bg-black/30 p-3 rounded-lg border border-slate-700/50 flex items-center justify-between gap-2">
+                    <i class="fa-solid fa-link text-slate-500"></i>
+                    <p class="text-xs font-mono text-blue-400 truncate flex-1 text-left" id="access-link">...</p>
+                    <button class="text-xs text-slate-400 hover:text-white" onclick="navigator.clipboard.writeText(document.getElementById('access-link').innerText)"><i class="fa-regular fa-copy"></i></button>
                 </div>
             </div>
 
-            <div class="glass-card p-6 flex-1">
-                <h3 class="font-bold text-white mb-4">Sunum Notları</h3>
-                <ul class="text-sm text-slate-400 space-y-3 list-disc list-inside">
-                    <li>Giriş bölümünde QR kodu yansıtarak katılımı sağlayın.</li>
-                    <li>Dava akışını "Akıllı Tahta" ekranından takip edin.</li>
-                    <li>Sorgulama bitince "Yönetici" panelinden oylamayı açın.</li>
-                    <li>Sonuçları değerlendirmek için "Gerekçe Duvarı"nı kullanın.</li>
+            <div class="glass-card p-8 flex-1 flex flex-col justify-center">
+                <h3 class="font-bold text-white mb-6 text-lg border-b border-slate-700 pb-2">Sunum Notları</h3>
+                <ul class="text-sm text-slate-300 space-y-4">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-check text-green-500 mt-1"></i>
+                        <span>Giriş bölümünde <strong>QR kodu</strong> yansıtarak katılımı sağlayın.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-check text-blue-500 mt-1"></i>
+                        <span>Dava akışını <strong>"Akıllı Tahta"</strong> ekranından takip edin.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-check text-red-500 mt-1"></i>
+                        <span>Sorgulama bitince <strong>"Yönetici"</strong> panelinden oylamayı açın.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-check text-purple-500 mt-1"></i>
+                        <span>Sonuçları değerlendirmek için <strong>"Gerekçe Duvarı"</strong>nı kullanın.</span>
+                    </li>
                 </ul>
             </div>
 
@@ -200,13 +277,13 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             // Tarih Ayarla
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('tr-TR');
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('tr-TR', options);
 
             // QR Kod Oluştur
             const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + "/index.html";
             document.getElementById('access-link').innerText = baseUrl;
             
-            // Kütüphane yüklenmişse QR kodu oluştur, yoksa hata mesajı
             if (typeof QRCode !== 'undefined') {
                 document.getElementById("qrcode").innerHTML = ""; // Temizle
                 new QRCode(document.getElementById("qrcode"), {
@@ -239,15 +316,17 @@
                         data: [0, 0],
                         backgroundColor: ['#ef4444', '#22c55e'],
                         borderWidth: 0,
-                        hoverOffset: 4
+                        hoverOffset: 10,
+                        borderColor: '#1e293b'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { family: 'Outfit' } } }
-                    }
+                        legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { family: 'Outfit', size: 14 } } }
+                    },
+                    cutout: '70%'
                 }
             });
         }
