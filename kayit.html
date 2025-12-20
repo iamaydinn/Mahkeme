@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <!-- jsPDF kütüphanelerine artık gerek yok, tarayıcı motorunu kullanacağız -->
 
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
@@ -23,46 +22,46 @@
         
         /* Tablo Stili */
         .custom-table th { background-color: #1e293b; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px; }
-        .custom-table td { padding: 12px; border-bottom: 1px solid #334155; font-size: 0.875rem; }
+        .custom-table td { padding: 12px; border-bottom: 1px solid #334155; font-size: 0.875rem; vertical-align: middle; }
         .custom-table tr:hover { background-color: #1e293b; }
+        
+        /* Onaylı Satır Stili */
+        .row-approved { background-color: rgba(22, 163, 74, 0.1) !important; border-left: 4px solid #22c55e; }
 
         /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
 
-        /* --- PDF / YAZDIRMA MODU STİLLERİ (TÜRKÇE KARAKTER FIX) --- */
+        /* --- PDF / YAZDIRMA MODU (Baskı önizleme ayarları) --- */
         @media print {
-            body { background-color: white !important; color: black !important; overflow: visible !important; height: auto !important; }
+            @page { size: landscape; margin: 10mm; }
+            body { background-color: white !important; color: black !important; -webkit-print-color-adjust: exact; }
             #main-panel { display: block !important; overflow: visible !important; height: auto !important; }
             
-            /* Gereksiz butonları gizle */
-            header button, .text-right button, #login-overlay { display: none !important; }
+            /* Gizlenecek Elemanlar */
+            header button, .text-right button, #login-overlay, .no-print, ::-webkit-scrollbar { display: none !important; }
             
-            /* Tablo "İşlem" sütununu gizle */
-            .custom-table th:last-child, .custom-table td:last-child { display: none !important; }
-
-            /* Rapor formatı düzenlemeleri */
-            header { background: white !important; border-bottom: 2px solid black !important; color: black !important; padding: 0 !important; margin-bottom: 20px !important; }
-            header h1 { color: black !important; font-size: 24px !important; }
-            
-            .stat-card { 
+            /* Rapor Başlığı */
+            header { 
                 background: white !important; 
-                border: 1px solid #ddd !important; 
+                border-bottom: 2px solid black !important; 
                 color: black !important; 
+                padding: 10px 0 !important; 
+                margin-bottom: 20px !important; 
+                position: relative;
                 box-shadow: none !important;
-                page-break-inside: avoid;
             }
-            .stat-card div { color: black !important; }
-
+            header h1::after { content: " - KATILIMCI RAPORU"; }
+            
+            /* Tablo Düzeni */
             .bg-slate-900 { background: white !important; border: none !important; box-shadow: none !important; }
             .custom-table th { background-color: #f3f4f6 !important; color: black !important; border-bottom: 2px solid black !important; }
             .custom-table td { color: black !important; border-bottom: 1px solid #ddd !important; }
-            .custom-table tr:hover { background-color: transparent !important; }
             
-            /* Badge renklerini baskı için düzelt */
-            .bg-yellow-900\/30 { background-color: #fef08a !important; color: #854d0e !important; border: 1px solid #854d0e; }
-            .bg-green-900\/30 { background-color: #bbf7d0 !important; color: #166534 !important; border: 1px solid #166534; }
+            /* Linkleri Temizle */
+            a { text-decoration: none; color: black !important; }
+            a i { display: none; } /* İkonları gizle */
         }
     </style>
 </head>
@@ -78,9 +77,9 @@
             <h2 class="text-xl font-bold text-white mb-2">KAYIT YÖNETİMİ</h2>
             <p class="text-xs text-slate-500 mb-6">Sadece organizasyon yetkilileri içindir.</p>
             <form onsubmit="panelLogin(event)" class="space-y-4">
-                <input type="text" id="adm-user" placeholder="Kullanıcı Adı" class="w-full bg-slate-800 border border-slate-700 p-3 rounded text-center outline-none focus:border-blue-500 text-white">
-                <input type="password" id="adm-pass" placeholder="Şifre" class="w-full bg-slate-800 border border-slate-700 p-3 rounded text-center outline-none focus:border-blue-500 text-white">
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition">GİRİŞ YAP</button>
+                <input type="text" id="adm-user" placeholder="Kullanıcı Adı" class="w-full bg-slate-800 border border-slate-700 p-3 rounded text-center outline-none focus:border-blue-500 text-white transition">
+                <input type="password" id="adm-pass" placeholder="Şifre" class="w-full bg-slate-800 border border-slate-700 p-3 rounded text-center outline-none focus:border-blue-500 text-white transition">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition shadow-lg">GİRİŞ YAP</button>
             </form>
             <p id="login-error" class="text-red-500 text-xs mt-4 h-4"></p>
         </div>
@@ -91,14 +90,11 @@
         <!-- Header -->
         <header class="h-16 border-b border-slate-800 bg-slate-900 flex justify-between items-center px-8 shadow-md shrink-0">
             <h1 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-clipboard-list text-yellow-400"></i> BAŞVURU LİSTESİ
+                <i class="fa-solid fa-clipboard-check text-green-400"></i> BAŞVURU LİSTESİ
             </h1>
             <div class="flex gap-3">
-                <button onclick="downloadPDF()" class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded text-xs font-bold transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-pdf"></i> PDF / YAZDIR
-                </button>
-                <button onclick="clearAllData()" class="bg-red-900/50 hover:bg-red-800 text-red-200 border border-red-800 px-4 py-2 rounded text-xs font-bold transition">
-                    LİSTEYİ TEMİZLE
+                <button onclick="printApproved()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-xs font-bold transition flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-print"></i> ONAYLI LİSTEYİ YAZDIR
                 </button>
                 <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded text-xs font-bold transition">ÇIKIŞ</button>
             </div>
@@ -108,19 +104,31 @@
         <div class="flex-1 overflow-y-auto p-8">
             
             <!-- İstatistikler -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 no-print">
                 <div class="stat-card border-blue-500">
                     <div class="text-slate-400 text-xs font-bold uppercase">Toplam Başvuru</div>
                     <div class="text-3xl font-bold text-white mt-1" id="count-total">0</div>
                 </div>
                 <div class="stat-card border-yellow-500">
-                    <div class="text-slate-400 text-xs font-bold uppercase">Jüri Adayları</div>
+                    <div class="text-slate-400 text-xs font-bold uppercase">Jüri Adayı</div>
                     <div class="text-3xl font-bold text-yellow-400 mt-1" id="count-jury">0</div>
                 </div>
-                <div class="stat-card border-green-500">
-                    <div class="text-slate-400 text-xs font-bold uppercase">Gözlemciler</div>
-                    <div class="text-3xl font-bold text-green-400 mt-1" id="count-observer">0</div>
+                <div class="stat-card border-purple-500">
+                    <div class="text-slate-400 text-xs font-bold uppercase">Gözlemci</div>
+                    <div class="text-3xl font-bold text-purple-400 mt-1" id="count-observer">0</div>
                 </div>
+                <div class="stat-card border-green-500 bg-green-900/10">
+                    <div class="text-green-400 text-xs font-bold uppercase">ONAYLANAN</div>
+                    <div class="text-3xl font-bold text-white mt-1" id="count-approved">0</div>
+                </div>
+            </div>
+
+            <!-- Filtreler -->
+            <div class="flex justify-between items-center mb-4 no-print">
+                <div class="text-sm text-slate-400">
+                    <span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span> Onaylananlar listede yeşil görünür.
+                </div>
+                <button onclick="clearAllData()" class="text-red-500 hover:text-white border border-red-900 hover:bg-red-900 px-3 py-1 rounded text-xs transition">Tüm Verileri Temizle</button>
             </div>
 
             <!-- Tablo -->
@@ -129,12 +137,13 @@
                     <table class="w-full text-left custom-table">
                         <thead>
                             <tr>
+                                <th>Durum</th>
                                 <th>Adı Soyadı</th>
-                                <th>Rol Tercihi</th>
-                                <th>E-Posta</th>
+                                <th>Rol</th>
                                 <th>Telefon</th>
-                                <th>Başvuru Tarihi</th>
-                                <th class="text-right">İşlem</th>
+                                <th>E-Posta</th>
+                                <th>Tarih</th>
+                                <th class="text-right no-print">İşlem</th>
                             </tr>
                         </thead>
                         <tbody id="registration-table" class="text-slate-300">
@@ -152,7 +161,7 @@
     </div>
 
     <script>
-        // FIREBASE YAPILANDIRMASI
+        // FIREBASE CONFIG
         const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac00df3325ec6afd" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -168,7 +177,9 @@
                 document.getElementById('main-panel').classList.remove('hidden');
                 initListener();
             } else {
-                document.getElementById('login-error').innerText = 'Hatalı kullanıcı adı veya şifre!';
+                const err = document.getElementById('login-error');
+                err.innerText = 'Hatalı kullanıcı adı veya şifre!';
+                setTimeout(() => err.innerText = '', 3000);
             }
         }
 
@@ -181,6 +192,7 @@
                 let total = snap.size;
                 let jury = 0;
                 let observer = 0;
+                let approvedCount = 0;
                 
                 tbody.innerHTML = '';
 
@@ -192,20 +204,47 @@
 
                 snap.forEach(doc => {
                     const d = doc.data();
-                    const date = d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleString('tr-TR') : 'Bilinmiyor';
+                    const date = d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleDateString('tr-TR') : '-';
+                    const isApproved = d.status === 'approved';
+                    const phone = d.phone || '-';
+
+                    if(d.role === 'Juri') jury++; else observer++;
+                    if(isApproved) approvedCount++;
+
+                    const rowClass = isApproved ? 'row-approved' : '';
                     
-                    if(d.role === 'Juri') jury++;
-                    else observer++;
+                    // Telefon Linki (WhatsApp) - Boşlukları sil, 0'ı 90 yap
+                    let cleanPhone = phone.replace(/\s+/g, '');
+                    if(cleanPhone.startsWith('0')) cleanPhone = '90' + cleanPhone.substring(1);
+                    const wpLink = `https://wa.me/${cleanPhone}`;
+
+                    // Durum Badge
+                    const statusBadge = isApproved 
+                        ? '<span class="bg-green-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">ONAYLI</span>' 
+                        : '<span class="bg-slate-700 text-slate-400 px-2 py-0.5 rounded text-[10px]">BEKLIYOR</span>';
+
+                    // Butonlar
+                    const actionBtn = isApproved
+                        ? `<button onclick="toggleStatus('${doc.id}', false)" class="text-yellow-500 hover:text-yellow-400 border border-yellow-900 hover:bg-yellow-900/20 px-3 py-1 rounded text-xs mr-2 font-bold no-print">İPTAL</button>`
+                        : `<button onclick="toggleStatus('${doc.id}', true)" class="text-green-500 hover:text-green-400 border border-green-900 hover:bg-green-900/20 px-3 py-1 rounded text-xs mr-2 font-bold no-print">ONAYLA</button>`;
 
                     const tr = document.createElement('tr');
+                    if(isApproved) tr.classList.add('row-approved');
+                    
                     tr.innerHTML = `
+                        <td>${statusBadge}</td>
                         <td class="font-bold text-white">${d.name}</td>
-                        <td><span class="px-2 py-1 rounded text-xs font-bold ${d.role === 'Juri' ? 'bg-yellow-900/30 text-yellow-500' : 'bg-green-900/30 text-green-500'}">${d.role}</span></td>
-                        <td class="text-slate-400 font-mono text-xs">${d.email}</td>
-                        <td class="text-slate-300 font-mono text-xs select-all"><a href="https://wa.me/${phone.replace(/\s+/g, '').replace(/^0/, '90')}" target="_blank" class="hover:text-green-400 flex items-center gap-1"><i class="fa-brands fa-whatsapp"></i> ${phone}</a></td> <!-- YENİ: WhatsApp Linkli Telefon -->
+                        <td><span class="px-2 py-1 rounded text-xs ${d.role === 'Juri' ? 'text-yellow-400' : 'text-purple-400'}">${d.role}</span></td>
+                        <td class="text-slate-300 font-mono text-xs select-all">
+                            <a href="${wpLink}" target="_blank" class="hover:text-green-400 flex items-center gap-1">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> ${phone}
+                            </a>
+                        </td>
+                        <td class="text-slate-400 font-mono text-xs select-all">${d.email}</td>
                         <td class="text-slate-500 text-xs">${date}</td>
-                        <td class="text-right">
-                            <button onclick="deleteEntry('${doc.id}')" class="text-red-500 hover:text-red-400 hover:bg-red-900/20 px-3 py-1 rounded transition text-xs border border-red-900/50">SİL</button>
+                        <td class="text-right no-print">
+                            ${actionBtn}
+                            <button onclick="deleteEntry('${doc.id}')" class="text-red-500 hover:text-red-400 px-2"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -214,34 +253,52 @@
                 document.getElementById('count-total').innerText = total;
                 document.getElementById('count-jury').innerText = jury;
                 document.getElementById('count-observer').innerText = observer;
+                document.getElementById('count-approved').innerText = approvedCount;
             });
         }
 
         // --- İŞLEMLER ---
+        window.toggleStatus = function(id, status) {
+            const newStatus = status ? 'approved' : 'pending';
+            db.collection(REGISTRATIONS).doc(id).update({ status: newStatus });
+        }
+
         window.deleteEntry = function(id) {
-            if(confirm('Bu başvuru kaydı silinecek. Emin misiniz?')) {
+            if(confirm('Bu başvuru kalıcı olarak silinecek. Emin misiniz?')) {
                 db.collection(REGISTRATIONS).doc(id).delete();
             }
         }
 
         window.clearAllData = async function() {
-            if(confirm('DİKKAT: Tüm başvuru listesi kalıcı olarak silinecek!\nBu işlem geri alınamaz.\nDevam etmek istiyor musunuz?')) {
+            if(confirm('DİKKAT: Tüm başvuru listesi silinecek!\nBu işlem geri alınamaz.\nDevam etmek istiyor musunuz?')) {
                 const snap = await db.collection(REGISTRATIONS).get();
                 const batch = db.batch();
                 snap.docs.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
-                alert('Liste temizlendi.');
             }
         }
 
-        // --- YAZDIRMA (PDF FIX) ---
-        window.downloadPDF = function() {
-            // PDF kitaplığı yerine tarayıcının native yazdırma özelliğini kullanıyoruz.
-            // Bu yöntem Türkçe karakterleri %100 doğru gösterir.
-            // Kullanıcı açılan pencereden "PDF Olarak Kaydet"i seçebilir.
+        // --- YAZDIRMA (Sadece Onaylıları Filtrele) ---
+        window.printApproved = function() {
+            // Yazdırma stili
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @media print {
+                    tr:not(.row-approved) { display: none !important; }
+                    body::before { 
+                        content: "ADALET SİMÜLASYONU - ONAYLI KATILIMCI LİSTESİ"; 
+                        display: block; text-align: center; font-size: 24pt; font-weight: bold; margin-bottom: 10px; margin-top: 20px;
+                    }
+                    body::after {
+                        content: "Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}";
+                        display: block; text-align: center; font-size: 10pt; margin-top: 5px; color: #555;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
             window.print();
+            setTimeout(() => document.head.removeChild(style), 1000);
         }
     </script>
 </body>
-
 </html>
