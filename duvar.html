@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerekçe Duvarı | Adalet Sim.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #020617; 
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        /* Kart Stilleri */
+        .reason-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            break-inside: avoid; /* Masonry layout için */
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        .reason-card:hover {
+            transform: translateY(-5px) scale(1);
+            background: rgba(30, 41, 59, 0.8);
+            z-index: 10;
+        }
+
+        /* Suçlu Kartı */
+        .card-guilty {
+            border-left: 4px solid #ef4444;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1);
+        }
+        .card-guilty:hover { box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3); }
+
+        /* Suçsuz Kartı */
+        .card-notguilty {
+            border-left: 4px solid #22c55e;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.1);
+        }
+        .card-notguilty:hover { box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); }
+
+        /* İsim Etiketi */
+        .juror-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Duvar Düzeni (Masonry) */
+        .masonry-grid {
+            column-count: 1;
+            column-gap: 1.5rem;
+        }
+        @media (min-width: 768px) { .masonry-grid { column-count: 2; } }
+        @media (min-width: 1280px) { .masonry-grid { column-count: 3; } }
+
+        @keyframes popIn { to { opacity: 1; transform: scale(1); } }
+        
+        /* Filtre Butonları */
+        .filter-btn.active { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="h-20 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md flex justify-between items-center px-6 md:px-12 z-20 shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400">
+                <i class="fa-solid fa-comments text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black text-white tracking-widest">GEREKÇE DUVARI</h1>
+                <p class="text-xs text-slate-500">Jüri Karar Analizi</p>
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="filterVotes('all')" class="filter-btn active px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:bg-slate-800 transition">TÜMÜ</button>
+            <button onclick="filterVotes('SUÇLU')" class="filter-btn px-4 py-2 rounded-lg border border-red-900/50 text-red-500 text-xs font-bold hover:bg-red-900/20 transition">SUÇLU</button>
+            <button onclick="filterVotes('SUÇSUZ')" class="filter-btn px-4 py-2 rounded-lg border border-green-900/50 text-green-500 text-xs font-bold hover:bg-green-900/20 transition">SUÇSUZ</button>
+        </div>
+    </header>
+
+    <!-- ANA İÇERİK -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-12 relative">
+        <!-- Arka Plan Süsü -->
+        <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] bg-blue-600/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+
+        <div id="wall-container" class="masonry-grid max-w-7xl mx-auto">
+            <!-- Kartlar buraya dinamik olarak gelecek -->
+            <div class="text-center col-span-full py-20 text-slate-600 animate-pulse">
+                Veriler bekleniyor...
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="h-10 border-t border-slate-900 bg-slate-950 flex items-center justify-center text-[10px] text-slate-600 shrink-0">
+        ADALET SİMÜLASYONU ANALİTİK MODÜLÜ
+    </footer>
+
+    <script>
+        // Firebase Yapılandırması (Ana dosyanızla aynı olmalı)
+        const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac00df3325ec6afd" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const VOTES_COLLECTION = 'sim_votes';
+
+        let currentFilter = 'all';
+        let allVotes = [];
+
+        // Dinleyici Başlat
+        document.addEventListener('DOMContentLoaded', () => {
+            db.collection(VOTES_COLLECTION).orderBy('timestamp', 'desc').onSnapshot(snap => {
+                allVotes = [];
+                snap.forEach(doc => {
+                    allVotes.push({ id: doc.id, ...doc.data() });
+                });
+                renderWall();
+            });
+        });
+
+        // Duvarı Çiz
+        function renderWall() {
+            const container = document.getElementById('wall-container');
+            container.innerHTML = '';
+
+            const filteredData = allVotes.filter(v => currentFilter === 'all' || v.vote === currentFilter);
+
+            if (filteredData.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-20 text-slate-500 text-lg">Henüz bu kategoride bir gerekçe yok.</div>`;
+                return;
+            }
+
+            filteredData.forEach(data => {
+                const isGuilty = data.vote === 'SUÇLU';
+                const cardClass = isGuilty ? 'card-guilty' : 'card-notguilty';
+                const voteColor = isGuilty ? 'text-red-500' : 'text-green-500';
+                const icon = isGuilty ? 'fa-gavel' : 'fa-dove';
+                
+                // Zamanı formatla (Varsa)
+                let timeStr = "";
+                if(data.timestamp) {
+                    const date = new Date(data.timestamp.seconds * 1000);
+                    timeStr = date.getHours() + ":" + String(date.getMinutes()).padStart(2, '0');
+                }
+
+                const html = `
+                <div class="reason-card ${cardClass}">
+                    <div class="juror-tag">
+                        <span><i class="fa-solid fa-user-tag mr-1"></i> ${data.name || 'Jüri'}</span>
+                        <span>${timeStr}</span>
+                    </div>
+                    <h3 class="text-xl font-bold ${voteColor} mb-2 flex items-center gap-2">
+                        <i class="fa-solid ${icon}"></i> ${data.vote}
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed font-light italic">
+                        "${data.reason || 'Gerekçe belirtilmemiş.'}"
+                    </p>
+                </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // Filtreleme Fonksiyonu
+        window.filterVotes = function(filter) {
+            currentFilter = filter;
+            
+            // Buton stillerini güncelle
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            renderWall();
+        }
+    </script>
+</body>
+</html>
