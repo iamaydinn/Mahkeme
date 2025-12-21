@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adalet Simülasyonu | Intro</title>
+
+<meta name="description" content="Adalet, etik ve vicdan kavramlarını deneyimsel olarak sunan dijital simülasyon.">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;500;800&display=swap" rel="stylesheet">
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#020617;
+    color:white;
+    font-family:'Inter',sans-serif;
+    transition:opacity 1.5s ease;
+}
+
+/* FILM GRAIN */
+body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:url("https://grainy-gradients.vercel.app/noise.svg");
+    opacity:0.07;
+    pointer-events:none;
+    z-index:300;
+}
+
+/* AMBIENT LIGHT */
+.ambient{
+    position:absolute;
+    inset:-50%;
+    background:radial-gradient(circle at center,rgba(30,58,138,.45),transparent 70%);
+    animation:pulse 10s infinite alternate;
+    z-index:1;
+}
+@keyframes pulse{
+    from{opacity:.4;transform:scale(1);}
+    to{opacity:.8;transform:scale(1.15);}
+}
+
+/* FOG */
+.fog{position:absolute;height:100vh;width:300vw;background-size:contain;animation:fog 60s linear infinite;opacity:.5}
+.fog.f2{animation-duration:40s;top:20%}
+@keyframes fog{to{transform:translateX(-200vw)}}
+
+/* CAMERA */
+@keyframes camera {
+  from { transform: scale(1) translateY(0); }
+  to { transform: scale(1.08) translateY(-25px); }
+}
+
+/* STAGE */
+.stage{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    opacity:0;
+    filter:blur(20px);
+    transform:scale(.97);
+    transition:all 2s cubic-bezier(.19,1,.22,1);
+    z-index:10;
+}
+.stage.active{
+    opacity:1;
+    filter:none;
+    transform:none;
+    animation:camera 10s ease-in-out forwards;
+}
+.stage.exit{
+    opacity:0;
+    filter:blur(30px);
+    transform:scale(1.05);
+}
+
+/* MICRO FLOAT */
+@keyframes float {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-6px); }
+}
+.stage.active h1,
+.stage.active h2 { animation:float 6s ease-in-out infinite }
+
+/* HEARTBEAT */
+@keyframes heart {
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.05)}
+}
+#s4.active h2{animation:heart 2s infinite}
+
+/* GOLD */
+.gold{
+    background:linear-gradient(to right,#fbf8cc,#fdd835,#fbf8cc);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+/* BUTTON */
+.btn{
+    border:1px solid rgba(251,191,36,.5);
+    padding:20px 60px;
+    letter-spacing:.3em;
+    font-family:'Playfair Display',serif;
+    color:#fbbf24;
+    transition:.5s;
+}
+.btn:hover{box-shadow:0 0 40px rgba(251,191,36,.5)}
+
+/* PORTAL */
+#portal{
+    position:fixed;
+    inset:0;
+    background:black;
+    z-index:999;
+    opacity:0;
+    pointer-events:none;
+}
+#portal.active{
+    animation:portal 1.5s forwards;
+}
+@keyframes portal{
+    from{clip-path:circle(0% at 50% 50%);opacity:1}
+    to{clip-path:circle(150% at 50% 50%);opacity:1}
+}
+
+/* PROGRESS */
+#progress{
+    position:fixed;
+    bottom:0;
+    left:0;
+    height:3px;
+    background:linear-gradient(90deg,#1e3a8a,#fbbf24);
+    width:0;
+    z-index:200;
+}
+</style>
+</head>
+
+<body>
+
+<div class="ambient"></div>
+
+<div class="fog" style="background:url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/img/fog1.png') repeat-x"></div>
+<div class="fog f2" style="background:url('https://raw.githubusercontent.com/danielstuart14/CSS_FOG_ANIMATION/master/img/fog2.png') repeat-x"></div>
+
+<!-- AUDIO -->
+<audio id="bg" preload="auto" loop>
+<source src="https://actions.google.com/sounds/v1/ambiences/warehouse_ambience.ogg" type="audio/ogg">
+</audio>
+<audio id="heart" src="https://actions.google.com/sounds/v1/human_voices/heartbeat.ogg"></audio>
+<audio id="click" src="https://actions.google.com/sounds/v1/foley/metal_click.ogg"></audio>
+
+<!-- OVERLAY -->
+<div id="overlay" class="fixed inset-0 bg-black z-[500] flex items-center justify-center cursor-pointer" onclick="startIntro()">
+<p class="tracking-[.5em] text-slate-500 animate-pulse text-xs">BAŞLATMAK İÇİN TIKLAYIN</p>
+</div>
+
+<!-- SCENES -->
+<div id="s1" class="stage">
+<img src="https://upload.wikimedia.org/wikipedia/tr/c/cc/Ataturkuni_logo.png" class="w-32 mb-6">
+<h3 class="tracking-[.4em] text-slate-300">ATATÜRK ÜNİVERSİTESİ</h3>
+</div>
+
+<div id="s2" class="stage">
+<h2 class="text-5xl italic">"Adalet nedir?"</h2>
+<p class="mt-4 text-slate-400">Bir kavram mı, bir sorumluluk mu?</p>
+</div>
+
+<div id="s3" class="stage">
+<h2 class="text-5xl font-bold">VERİDEN ÖTESİNİ GÖRÜN</h2>
+<p class="tracking-[.3em] text-cyan-400 mt-4">YAPAY ZEKA DESTEKLİ ANALİZ</p>
+</div>
+
+<div id="s4" class="stage">
+<h2 class="text-7xl gold">VİCDANINIZ</h2>
+<p class="mt-4 border-y border-white/20 py-2">EN BÜYÜK YARGICINIZ</p>
+</div>
+
+<div id="s5" class="stage">
+<h1 class="text-8xl font-bold">ADALET</h1>
+<h2 class="tracking-[.5em] mt-2">SİMÜLASYONU</h2>
+</div>
+
+<!-- FINAL -->
+<div id="final" class="fixed bottom-16 w-full text-center opacity-0 z-50">
+<button class="btn" onclick="enter()">OTURUMU BAŞLAT</button>
+<p class="mt-4 text-[10px] text-slate-500">Pedagojik Amaçlı Dijital Simülasyon</p>
+</div>
+
+<div id="portal"></div>
+<div id="progress"></div>
+
+<script>
+const scenes=["s1","s2","s3","s4","s5"];
+const times=[4000,5000,4000,4500,5000];
+const bg=document.getElementById("bg");
+const heart=document.getElementById("heart");
+
+function shake(){
+document.body.animate([
+{transform:"translateX(0)"},
+{transform:"translateX(-6px)"},
+{transform:"translateX(6px)"},
+{transform:"translateX(0)"}
+],{duration:400});
+}
+
+function startIntro(){
+document.getElementById("overlay").remove();
+bg.volume=.6;
+bg.play();
+
+let t=0;
+const total=times.reduce((a,b)=>a+b);
+progress.style.transition=`width ${total}ms linear`;
+setTimeout(()=>progress.style.width="100%",100);
+
+scenes.forEach((id,i)=>{
+setTimeout(()=>{
+if(i>0){
+document.getElementById(scenes[i-1]).classList.remove("active");
+document.getElementById(scenes[i-1]).classList.add("exit");
+}
+document.getElementById(id).classList.add("active");
+if(id==="s2") shake();
+if(id==="s4"){heart.play(); bg.playbackRate=.95;}
+else bg.playbackRate=1;
+},t);
+t+=times[i];
+});
+
+setTimeout(()=>final.style.opacity=1,t);
+}
+
+function enter(){
+click.play();
+document.getElementById("portal").classList.add("active");
+setTimeout(()=>{
+document.body.style.opacity=0;
+window.location="atolye.html";
+},1400);
+}
+</script>
+
+</body>
+</html>
