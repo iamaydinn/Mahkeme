@@ -1,187 +1,308 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Adalet Simülasyonu | Akademik Açılış</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adalet Simülasyonu - USBES 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* SIFIRLAMA */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;500;800&display=swap" rel="stylesheet">
+        body {
+            /* GÜNCELLENMİŞ ARKA PLAN: Daha hızlı ve daha çeşitli renkler */
+            /* Lacivert, Bordo, Mor, Koyu Altın tonları arasında geçiş */
+            background: linear-gradient(135deg, #091235, #5c1b1b, #2c1c4a, #6b4c04, #141E30, #3a0f0f);
+            background-size: 600% 600%; /* Daha geniş alan, daha yumuşak ama çeşitli geçiş */
+            animation: gradientBG 12s ease infinite; /* Hız arttırıldı (20s -> 12s) */
+            
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            color: #fff;
+        }
 
-<style>
-html,body{
-margin:0;padding:0;overflow:hidden;
-font-family:'Inter',sans-serif;
-background:#020617;color:white;height:100%;
-}
+        /* Arka plan renk animasyonu */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-/* 🎥 VIDEO ARKAPLAN */
-#bg-video{
-position:fixed;inset:0;
-width:100%;height:100%;
-object-fit:cover;
-filter:brightness(.35) saturate(1.2);
-z-index:-3;
-}
+        /* PARÇACIK EFEKTİ (Canvas) */
+        #canvas-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            /* İkonların renklerle daha iyi karışması için */
+            mix-blend-mode: hard-light;
+            opacity: 0.6; /* Arka planı boğmaması için hafif şeffaflık */
+        }
 
-/* KARARTMA + GRADIENT */
-.overlay{
-position:fixed;inset:0;
-background:
-radial-gradient(circle at 50% 40%,rgba(255,255,255,.08),transparent 60%),
-linear-gradient(to bottom,#020617,#000);
-z-index:-2;
-}
+        /* VIGNETTE (Odaklama) */
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 45%, rgba(0,0,0,0.95) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
 
-/* SAHNE */
-.stage{
-position:absolute;inset:0;
-display:flex;flex-direction:column;
-align-items:center;justify-content:center;
-text-align:center;
-opacity:0;transform:translateY(30px) scale(.98);
-transition:1.8s cubic-bezier(.16,1,.3,1);
-}
-.stage.active{opacity:1;transform:none}
-.stage.exit{opacity:0;filter:blur(12px)}
+        /* --- ANA KART (HİÇBİR FONKSİYON BOZULMADI) --- */
+        .card-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 900px;
+            max-width: 90%;
+            padding: 4px;
+            border-radius: 22px;
+            overflow: hidden;
+            opacity: 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            animation: cardEntrance 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards, cardFloat 6s ease-in-out infinite 1.5s;
+        }
 
-/* AKADEMİK TİPOGRAFİ */
-.serif{font-family:'Playfair Display',serif}
-.gold{
-background:linear-gradient(90deg,#fef08a,#facc15,#fde047);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-text-shadow:0 0 40px rgba(250,204,21,.3)
-}
+        .card-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(transparent, rgba(255, 215, 0, 0.9), transparent 30%);
+            animation: rotateBorder 7s linear infinite;
+        }
 
-/* BAŞLAT EKRANI */
-#init{
-position:fixed;inset:0;
-background:black;
-display:flex;align-items:center;justify-content:center;
-z-index:100;
-cursor:pointer;
-}
+        .card-content {
+            position: relative;
+            background: rgba(10, 15, 35, 0.9); 
+            border-radius: 18px;
+            padding: 3rem 2rem;
+            text-align: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            backdrop-filter: blur(15px);
+        }
 
-/* BUTON */
-.btn{
-border:1px solid rgba(250,204,21,.6);
-padding:20px 70px;
-letter-spacing:.4em;
-font-family:'Playfair Display',serif;
-color:#fde047;
-transition:.6s;
-}
-.btn:hover{
-box-shadow:0 0 40px rgba(250,204,21,.5);
-}
+        .logo-area img {
+            width: 130px;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.3));
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: slideDown 1s ease forwards 0.5s;
+        }
 
-/* PROGRESS */
-#progress{
-position:fixed;bottom:0;left:0;
-height:3px;width:0%;
-background:linear-gradient(90deg,#1e3a8a,#facc15);
-z-index:50;
-}
-</style>
+        h3 {
+            font-size: 1.1rem; color: #e0e0e0; font-weight: 300; letter-spacing: 2px;
+            margin-bottom: 30px; line-height: 1.6; opacity: 0;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+            animation: fadeIn 1s ease forwards 1s;
+        }
+        h3 span {
+            color: #fff; font-weight: 600;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3); padding-bottom: 2px;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif; font-size: 3.5rem; font-weight: 800;
+            margin-bottom: 20px; text-transform: uppercase; letter-spacing: 5px;
+            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            background-size: 200% auto; color: transparent;
+            -webkit-background-clip: text; background-clip: text;
+            opacity: 0; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+            animation: textShine 5s linear infinite, scaleUp 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.2s;
+        }
+
+        .badge {
+            font-family: 'Cinzel', serif; font-size: 1.4rem; color: #FFD700;
+            border: 2px solid rgba(255, 215, 0, 0.5); padding: 10px 40px;
+            border-radius: 50px; background: rgba(0,0,0,0.3);
+            margin-bottom: 40px; opacity: 0; position: relative;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            animation: fadeIn 1s ease forwards 1.8s;
+        }
+        .badge::after { 
+            content: ''; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 50px; border: 1px solid #FFD700;
+            animation: pulseGold 3s infinite;
+        }
+
+        .btn {
+            text-decoration: none; color: #000; background: #FFD700;
+            padding: 15px 50px; font-family: 'Montserrat', sans-serif;
+            font-weight: 700; font-size: 1.1rem; letter-spacing: 1px;
+            border-radius: 4px; transition: all 0.4s ease; opacity: 0;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            animation: slideUpBtn 1s ease forwards 2.2s;
+        }
+        .btn:hover {
+            background: #fff; box-shadow: 0 0 50px rgba(255, 255, 255, 0.7);
+            transform: translateY(-3px);
+        }
+
+        /* KEYFRAMES (Aynı) */
+        @keyframes rotateBorder { to { transform: rotate(360deg); } }
+        @keyframes cardEntrance { from { opacity: 0; transform: translateY(50px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes cardFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes textShine { to { background-position: 200% center; } }
+        @keyframes pulseGold { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+        @keyframes slideUpBtn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; letter-spacing: 2px; }
+            .card-wrapper { width: 95%; }
+            h3 { font-size: 0.9rem; }
+            .card-content { padding: 2rem 1rem; }
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- 🎥 AI / GERÇEK DÜNYA HİSSİ -->
-<video id="bg-video" autoplay muted loop playsinline>
-<source src="https://videos.pexels.com/video-files/3195535/3195535-hd_1920_1080_25fps.mp4" type="video/mp4">
-</video>
+    <canvas id="canvas-bg"></canvas>
+    <div class="vignette"></div>
 
-<div class="overlay"></div>
+    <div class="card-wrapper">
+        <div class="card-content">
+            <div class="logo-area">
+                <img src="https://upload.wikimedia.org/wikipedia/tr/c/cc/Ataturkuni_logo.png?20200406213338" alt="Atauni Logo">
+            </div>
+            <h3>
+                <span>KAZIM KARABEKİR EĞİTİM FAKÜLTESİ</span><br>
+                SOSYAL BİLGİLER ÖĞRETMENLİĞİ
+            </h3>
+            <h1>ADALET SİMÜLASYONU</h1>
+            <div class="badge">USBES 2026</div>
+            <a href="https://iamaydinn.github.io/Mahkeme/atolye" class="btn">
+                SİMÜLASYONU BAŞLAT
+            </a>
+        </div>
+    </div>
 
-<!-- 🔊 SESLER -->
-<audio id="ambience" preload="auto" loop muted>
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_9c3b7e2a33.mp3" type="audio/mpeg">
-</audio>
+    <script>
+        const canvas = document.getElementById("canvas-bg");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-<audio id="whoosh">
-<source src="https://cdn.pixabay.com/audio/2022/10/03/audio_5d2c2e06a7.mp3" type="audio/mpeg">
-</audio>
+        // --- ADALET TEMALI İKONLARIN YÜKLENMESİ ---
+        // Şeffaf PNG ikon linkleri (Terazi, Tokmak, Kitap, Sütun)
+        const iconUrls = [
+            'https://cdn-icons-png.flaticon.com/128/263/263095.png', // Terazi
+            'https://cdn-icons-png.flaticon.com/128/9264/9264296.png', // Tokmak
+            'https://cdn-icons-png.flaticon.com/128/3196/3196582.png', // Hukuk Kitabı
+            'https://cdn-icons-png.flaticon.com/128/2231/2231659.png'  // Sütun
+        ];
+        let loadedImages = [];
+        let imagesLoadedCount = 0;
 
-<!-- BAŞLAT -->
-<div id="init" onclick="startIntro()">
-<p class="text-slate-400 tracking-[0.6em] animate-pulse text-sm">
-AKADEMİK SUNUMU BAŞLAT
-</p>
-</div>
+        function preloadImages(callback) {
+            iconUrls.forEach((url) => {
+                const img = new Image();
+                img.src = url;
+                img.onload = () => {
+                    imagesLoadedCount++;
+                    loadedImages.push(img);
+                    if (imagesLoadedCount === iconUrls.length) {
+                        callback();
+                    }
+                };
+            });
+        }
 
-<!-- SAHNELER -->
-<div id="s1" class="stage">
-<p class="tracking-[0.4em] text-slate-300">ATATÜRK ÜNİVERSİTESİ</p>
-<p class="mt-4 text-sm tracking-[0.3em] text-slate-500">SOSYAL BİLGİLER EĞİTİMİ</p>
-</div>
+        let particlesArray;
+        const numberOfParticles = 60; // İkon sayısı (Çok kalabalık olmaması için azaltıldı)
+        const connectionDistance = 150;
 
-<div id="s2" class="stage">
-<h2 class="serif text-5xl italic">“Adalet yalnızca yasa mıdır?”</h2>
-<p class="mt-6 text-slate-400">Yoksa toplumsal bir sorumluluk mu?</p>
-</div>
+        // --- GÜNCELLENMİŞ PARÇACIK SINIFI (İKONLAR İÇİN) ---
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                // Boyutlar artık ikon boyutu
+                this.size = Math.random() * 25 + 15; 
+                this.speedX = (Math.random() * 0.6) - 0.3;
+                this.speedY = (Math.random() * 0.6) - 0.3;
+                // Rastgele bir ikon görseli ata
+                this.image = loadedImages[Math.floor(Math.random() * loadedImages.length)];
+                // Rastgele dönüş açısı ve hızı
+                this.angle = Math.random() * 360;
+                this.spinSpeed = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 0.5 + 0.1);
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.angle += this.spinSpeed; // Kendi etrafında dönme
+                if (this.x > canvas.width + this.size || this.x < -this.size) this.speedX = -this.speedX;
+                if (this.y > canvas.height + this.size || this.y < -this.size) this.speedY = -this.speedY;
+            }
+            draw() {
+                // Resmi çizmeden önce şeffaflığı ayarla
+                ctx.globalAlpha = 0.3; // İkonlar çok baskın olmasın diye yarı saydam
+                
+                // Resmi döndürmek için canvas'ı kaydır ve çevir
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle * Math.PI / 180);
+                // Resmi merkeze alarak çiz
+                ctx.drawImage(this.image, -this.size/2, -this.size/2, this.size, this.size);
+                ctx.restore();
+                
+                ctx.globalAlpha = 1.0; // Şeffaflığı sıfırla
+            }
+        }
 
-<div id="s3" class="stage">
-<h1 class="text-7xl font-black opacity-20 absolute">DATA</h1>
-<h2 class="text-4xl font-bold z-10">YAPAY ZEKA & ETİK</h2>
-<p class="tracking-[0.4em] text-cyan-400 mt-4 text-sm">KARAR SÜREÇLERİ</p>
-</div>
+        function init() {
+            particlesArray = [];
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
 
-<div id="s4" class="stage">
-<h2 class="serif text-7xl gold">VİCDAN</h2>
-<p class="mt-4 tracking-widest">EN YÜKSEK YARGI MERCİİ</p>
-</div>
+        // İkonlar arası bağlantı çizgileri (Hukuki bağları temsilen)
+        function connect() {
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                                 + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    
+                    if (distance < (connectionDistance * connectionDistance)) {
+                        let opacityValue = 1 - (distance / (connectionDistance * connectionDistance));
+                        // Çizgi rengi altın/beyaz karışımı
+                        ctx.strokeStyle = 'rgba(255, 223, 128,' + opacityValue * 0.2 + ')';
+                        ctx.lineWidth = 0.8;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
 
-<div id="s5" class="stage">
-<p class="text-xs tracking-[0.5em] text-slate-400 mb-6">
-DİJİTAL HUKUK ATÖLYESİ
-</p>
-<h1 class="serif text-8xl">ADALET</h1>
-<h2 class="tracking-[0.5em] mt-2">SİMÜLASYONU</h2>
-</div>
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            connect();
+            requestAnimationFrame(animate);
+        }
 
-<div id="final" class="stage">
-<button class="btn" onclick="goNext()">ATÖLYEYİ BAŞLAT</button>
-<p class="mt-6 text-[10px] tracking-widest text-slate-500">
-Muhammet Emin Aydın
-</p>
-</div>
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            init();
+        });
 
-<div id="progress"></div>
-
-<script>
-const scenes=["s1","s2","s3","s4","s5","final"];
-const durations=[4000,5000,4000,4000,5000,0];
-
-function startIntro(){
-document.getElementById("init").style.display="none";
-
-const amb=document.getElementById("ambience");
-amb.muted=false;
-amb.volume=.5;
-amb.play();
-
-let t=0,total=durations.reduce((a,b)=>a+b,0);
-const bar=document.getElementById("progress");
-bar.style.transition=`width ${total}ms linear`;
-setTimeout(()=>bar.style.width="100%",100);
-
-scenes.forEach((id,i)=>{
-setTimeout(()=>{
-document.getElementById("whoosh").play();
-document.querySelectorAll(".stage").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-},t);
-t+=durations[i];
-});
-}
-
-function goNext(){
-document.body.style.opacity=0;
-setTimeout(()=>location.href="atolye.html",1500);
-}
-</script>
-
+        // Görseller yüklendikten sonra animasyonu başlat
+        preloadImages(() => {
+            init();
+            animate();
+        });
+    </script>
 </body>
 </html>
