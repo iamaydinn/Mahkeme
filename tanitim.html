@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,54 +8,72 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
-    <!-- FIREBASE İÇİN GEREKLİ SDK'lar -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 
     <style>
         body { 
             font-family: 'Inter', sans-serif;
-            background-color: #0c0a09; /* Stone-950 */
-            color: #e5e5e5; /* Stone-200 */
+            background-color: #0c0a09; 
+            color: #e5e5e5;
+            overflow-x: hidden;
         }
         
-        /* --- YENİ: BLUR ARKA PLAN EFEKTİ --- */
-        #background-animation {
+        /* --- SİNEMATİK ARKA PLAN SLIDER --- */
+        #bg-slider-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -10;
+            z-index: -50;
+            pointer-events: none;
             overflow: hidden;
         }
 
-        .blob {
+        .bg-slide {
             position: absolute;
-            width: 500px;
-            height: 500px;
-            background: rgba(56, 189, 248, 0.1); /* Mavi */
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.6;
-            animation: moveBlob 15s infinite alternate;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transform: scale(1);
+            transition: opacity 2s ease-in-out;
         }
 
-        .blob:nth-child(2) {
-            background: rgba(250, 204, 21, 0.1); /* Sarı */
-            width: 600px;
-            height: 600px;
-            top: -20%;
-            left: 60%;
-            animation-delay: -5s;
+        .bg-slide.active {
+            opacity: 1;
+            animation: kenBurns 20s infinite alternate linear;
         }
 
-        @keyframes moveBlob {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(300px, 400px) scale(1.1); }
-            100% { transform: translate(0, 0) scale(1); }
+        @keyframes kenBurns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
         }
-        /* --- ARKA PLAN SONU --- */
+
+        /* İçeriklerin okunması için koyu perde */
+        #bg-overlay-dark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(12, 10, 9, 0.85); /* Sayfa genelinde koyuluk */
+            z-index: -40;
+            /* backdrop-filter: blur(2px); İsteğe bağlı, resmi daha net görmek için kapattım */
+        }
+
+        /* --- GLASSMORPHISM SECTION STYLES --- */
+        /* Bölümler artık katı renk değil, yarı saydam */
+        .glass-section {
+            background: rgba(28, 25, 23, 0.6); /* Stone-900 with opacity */
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+        }
 
         .section-title {
             position: relative;
@@ -63,7 +81,7 @@
             font-weight: 800;
             padding-bottom: 0.5rem;
             color: #facc15;
-            text-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+            text-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
         }
         .section-title::after {
             content: '';
@@ -74,19 +92,27 @@
             height: 3px;
             background-color: #facc15;
             border-radius: 9999px;
+            box-shadow: 0 0 10px #facc15;
         }
+
         .card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: rgba(41, 37, 36, 0.7); /* Stone-800 semi-transparent */
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
         }
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            border-color: rgba(250, 204, 21, 0.3);
         }
-        .hero-bg {
-            background: linear-gradient(rgba(12, 10, 9, 0.85), rgba(12, 10, 9, 0.95)), url('https://placehold.co/1920x800/1e293b/d1d5db?text=MAHKEME+S%C4%B0M%C3%9CLASYONU');
-            background-size: cover;
-            background-position: center;
+
+        /* Hero bölümü artık resim göstermeyecek, şeffaf olacak */
+        .hero-section {
+            background: transparent;
+            position: relative;
         }
+
         /* Özel Alert Stili */
         .custom-alert {
             position: fixed;
@@ -99,19 +125,21 @@
             z-index: 1000;
             transition: opacity 0.5s, transform 0.5s;
             opacity: 0;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         .show-alert { opacity: 1; transform: translateX(-50%) translateY(0); }
         
-        /* Video Alanı için Şık CSS */
+        /* Video Alanı */
         .video-box {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
+            background: rgba(15, 23, 42, 0.6);
             border: 2px solid #38bdf8;
-            box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
             animation: pulse-blue 4s infinite alternate;
+            backdrop-filter: blur(5px);
         }
         @keyframes pulse-blue {
-            from { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-            to { box-shadow: 0 0 35px rgba(56, 189, 248, 0.7); }
+            from { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+            to { box-shadow: 0 0 35px rgba(56, 189, 248, 0.5); }
         }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite; }
         @keyframes pulse-green {
@@ -123,201 +151,262 @@
 </head>
 <body onload="renderLiveStatus()">
 
-    <!-- YENİ: ANİMASYONLU ARKA PLAN -->
-    <div id="background-animation">
-        <div class="blob top-0 left-0"></div>
-        <div class="blob"></div>
-    </div>
-
-    <!-- Başarı/Hata Bildirimi (Custom Alert) -->
+    <div id="bg-slider-container">
+        </div>
+    <div id="bg-overlay-dark"></div>
     <div id="custom-alert" class="custom-alert bg-green-600 text-white">Başvurunuz Başarıyla Alındı!</div>
 
-    <!-- Header & Navigation -->
-    <header class="bg-stone-900/80 sticky top-0 z-50 backdrop-blur-md shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-            <div class="text-2xl font-black text-yellow-400 tracking-wider">
-                ADALET SİM.
+    <header class="fixed top-0 w-full z-50 transition-all duration-300" id="main-header">
+        <div class="bg-stone-950/80 backdrop-blur-md border-b border-white/10 shadow-2xl">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center border border-yellow-500/50">
+                        <i class="fa-solid fa-scale-balanced text-yellow-400"></i>
+                    </div>
+                    <div class="text-2xl font-black text-white tracking-widest drop-shadow-md">
+                        ADALET <span class="text-yellow-400">SİM.</span>
+                    </div>
+                </div>
+                <nav class="hidden md:flex space-x-8 text-sm font-bold uppercase tracking-wide">
+                    <a href="#amac" class="text-stone-300 hover:text-yellow-400 transition hover:scale-105">Amaç</a>
+                    <a href="#ilkeler" class="text-stone-300 hover:text-yellow-400 transition hover:scale-105">İlkeler</a>
+                    <a href="#ozellikler" class="text-stone-300 hover:text-yellow-400 transition hover:scale-105">Özellikler</a>
+                    <a href="#sistem-aksi" class="text-stone-300 hover:text-yellow-400 transition hover:scale-105">Video</a>
+                    <a href="#kilavuz" class="text-stone-300 hover:text-yellow-400 transition hover:scale-105">Kılavuz</a>
+                </nav>
+                <a href="#kayit" class="bg-yellow-500 text-stone-900 px-6 py-2.5 rounded-xl font-black text-sm shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:bg-yellow-400 hover:scale-105 transition transform border border-yellow-300">KAYIT OL</a>
             </div>
-            <nav class="hidden md:flex space-x-8 text-sm font-semibold">
-                <a href="#amac" class="text-white hover:text-yellow-400 transition">Amaç</a>
-                <a href="#ilkeler" class="text-white hover:text-yellow-400 transition">İlkeler</a>
-                <a href="#ozellikler" class="text-white hover:text-yellow-400 transition">Özellikler</a>
-                <a href="#sistem-aksi" class="text-white hover:text-yellow-400 transition">Tanıtım Videosu</a>
-                <a href="#kilavuz" class="text-white hover:text-yellow-400 transition">Kılavuz</a>
-                <a href="#iletisim" class="text-white hover:text-yellow-400 transition">İletişim</a>
-            </nav>
-            <a href="#kayit" class="bg-yellow-500 text-stone-900 px-4 py-2 rounded-full font-bold text-sm shadow-md hover:bg-yellow-400 transition">Kayıt Ol</a>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero-bg h-[80vh] flex items-center justify-center text-center">
-        <div class="px-4">
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 leading-tight">
-                <span class="block text-white">ADALET SİMÜLASYONU</span>
-                <span class="block text-yellow-400 mt-2">DURUMU SEN YÖNET!</span>
+    <section class="hero-section h-screen flex items-center justify-center text-center relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-stone-950"></div>
+        
+        <div class="px-4 relative z-10 mt-10">
+            <div class="inline-block px-4 py-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-xs font-bold mb-6 tracking-widest uppercase animate-pulse">
+                Atatürk Üniversitesi • Sosyal Bilgiler Öğretmenliği
+            </div>
+            <h1 class="text-6xl md:text-8xl font-black tracking-tight mb-6 leading-tight drop-shadow-2xl">
+                <span class="block text-white">ADALET</span>
+                <span class="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mt-2">SİMÜLASYONU</span>
             </h1>
-            <p class="text-xl text-stone-300 max-w-3xl mx-auto mb-8">
-                Öğretmen adaylarına özel, dijital platformlar aracılığıyla hukuki süreçleri ve vicdani kanaati deneyimleme fırsatı.
+            <p class="text-xl md:text-2xl text-stone-200 max-w-3xl mx-auto mb-10 font-light drop-shadow-md leading-relaxed">
+                "Adalet mülkün temelidir." ilkesini dijital çağda deneyimle. <br>
+                <span class="font-bold text-white">Durumu sen yönet, kararı sen ver.</span>
             </p>
-            <a href="#amac" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-xl hover:bg-blue-500 transition transform hover:scale-105">
-                <i class="fa-solid fa-graduation-cap mr-2"></i> Eğitici İçeriği Gör
-            </a>
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <a href="#amac" class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-[0_0_30px_rgba(37,99,235,0.5)] hover:bg-blue-500 transition transform hover:scale-105 border border-blue-400 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-play"></i> Keşfetmeye Başla
+                </a>
+                <a href="#sistem-aksi" class="bg-stone-800/80 backdrop-blur text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-stone-700 transition transform hover:scale-105 border border-white/10 flex items-center justify-center gap-3">
+                    <i class="fa-brands fa-youtube text-red-500"></i> Tanıtımı İzle
+                </a>
+            </div>
         </div>
     </section>
 
-    <!-- Amaç Section -->
-    <section id="amac" class="py-16 bg-stone-900">
+    <section id="amac" class="py-24 glass-section">
         <div class="max-w-6xl mx-auto px-4 text-center">
-            <h2 class="section-title text-3xl mb-12">ETKİNLİĞİN AMACI</h2>
+            <h2 class="section-title text-4xl mb-16">ETKİNLİĞİN VİZYONU</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="card bg-stone-800 p-6 rounded-xl border border-stone-700">
-                    <i class="fa-solid fa-scale-balanced text-4xl text-yellow-500 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-3 text-white">Hukuki Süreç Bilgisi</h3>
-                    <p class="text-stone-400 text-sm">Katılımcıların, mahkeme işleyişini, tarafların rollerini ve delillerin sunulma biçimlerini uygulamalı olarak öğrenmesini sağlamak.</p>
+                <div class="card p-8 rounded-2xl">
+                    <div class="w-16 h-16 bg-yellow-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-yellow-500/30">
+                        <i class="fa-solid fa-scale-balanced text-3xl text-yellow-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Hukuki Süreç Bilgisi</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed">Katılımcıların, mahkeme işleyişini, tarafların rollerini ve delillerin sunulma biçimlerini uygulamalı olarak öğrenmesini sağlamak.</p>
                 </div>
-                <div class="card bg-stone-800 p-6 rounded-xl border border-stone-700">
-                    <i class="fa-solid fa-brain text-4xl text-blue-500 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-3 text-white">Eleştirel Düşünme</h3>
-                    <p class="text-stone-400 text-sm">Sunulan deliller ışığında mantık yürütme, vicdani kanaat oluşturma ve adil karar verme becerilerini geliştirmek.</p>
+                <div class="card p-8 rounded-2xl">
+                    <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-blue-500/30">
+                        <i class="fa-solid fa-brain text-3xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Eleştirel Düşünme</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed">Sunulan deliller ışığında mantık yürütme, vicdani kanaat oluşturma ve adil karar verme becerilerini geliştirmek.</p>
                 </div>
-                <div class="card bg-stone-800 p-6 rounded-xl border border-stone-700">
-                    <i class="fa-solid fa-users-viewfinder text-4xl text-green-500 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-3 text-white">Dijital Adaptasyon</h3>
-                    <p class="text-stone-400 text-sm">Modern web uygulamaları ve canlı yayın akışları üzerinden etkileşimli ve gerçek zamanlı bir öğrenme ortamı sunmak.</p>
+                <div class="card p-8 rounded-2xl">
+                    <div class="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-green-500/30">
+                        <i class="fa-solid fa-users-viewfinder text-3xl text-green-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-white">Dijital Adaptasyon</h3>
+                    <p class="text-stone-400 text-sm leading-relaxed">Modern web uygulamaları ve canlı yayın akışları üzerinden etkileşimli ve gerçek zamanlı bir öğrenme ortamı sunmak.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- YENİ: Temel İlkeler Bölümü -->
-    <section id="ilkeler" class="py-16 bg-stone-800">
+    <section id="ilkeler" class="py-24 glass-section bg-stone-950/80">
         <div class="max-w-6xl mx-auto px-4 text-center">
-            <h2 class="section-title text-3xl mb-12">TEMEL İLKE VE YÖNTEMLER</h2>
+            <h2 class="section-title text-4xl mb-16">TEMEL İLKE VE YÖNTEMLER</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- İlke 1 -->
-                <div class="card bg-stone-900 p-6 rounded-xl border border-cyan-500/50 hover:border-cyan-400">
-                    <i class="fa-solid fa-book-reader text-4xl text-cyan-400 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-3 text-white">Vicdani Kanaat</h3>
+                <div class="card p-8 rounded-2xl border-t-4 border-t-cyan-500">
+                    <i class="fa-solid fa-book-reader text-5xl text-cyan-400 mb-6 block drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]"></i>
+                    <h3 class="text-xl font-bold mb-3 text-white">Vicdani Kanaat</h3>
                     <p class="text-stone-400 text-sm">Karar sürecinin, kanıtların rasyonel değerlendirilmesiyle oluşan içsel yargıya dayandırılması hedeflenir.</p>
                 </div>
-                <!-- İlke 2 -->
-                <div class="card bg-stone-900 p-6 rounded-xl border border-indigo-500/50 hover:border-indigo-400">
-                    <i class="fa-solid fa-user-check text-4xl text-indigo-400 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-3 text-white">Masumiyet Karinesi</h3>
+                <div class="card p-8 rounded-2xl border-t-4 border-t-indigo-500">
+                    <i class="fa-solid fa-user-check text-5xl text-indigo-400 mb-6 block drop-shadow-[0_0_10px_rgba(129,140,248,0.5)]"></i>
+                    <h3 class="text-xl font-bold mb-3 text-white">Masumiyet Karinesi</h3>
                     <p class="text-stone-400 text-sm">Sanığın suçluluğu kanıtlanana kadar masum sayılması ilkesi, delil değerlendirme pratiği kazandırır.</p>
                 </div>
-                <!-- İlke 3 -->
-                <div class="card bg-stone-900 p-6 rounded-xl border border-purple-500/50 hover:border-purple-400">
-                    <i class="fa-solid fa-shuffle text-4xl text-purple-400 mb-4"></i>
-                    <h3 class="text-xl font-semibold mb-3 text-white">Ters Yüz Sınıf (Flipped)</h3>
+                <div class="card p-8 rounded-2xl border-t-4 border-t-purple-500">
+                    <i class="fa-solid fa-shuffle text-5xl text-purple-400 mb-6 block drop-shadow-[0_0_10px_rgba(192,132,252,0.5)]"></i>
+                    <h3 class="text-xl font-bold mb-3 text-white">Ters Yüz Sınıf (Flipped)</h3>
                     <p class="text-stone-400 text-sm">Öğrencilerin teorik bilgiyi önceden edinip, sınıf zamanını aktif uygulama ve tartışmaya ayırması sağlanır.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Özellikler Section -->
-    <section id="ozellikler" class="py-16 bg-stone-900">
+    <section id="ozellikler" class="py-24 glass-section">
         <div class="max-w-6xl mx-auto px-4">
-            <h2 class="section-title text-3xl mb-12 text-center">SİMÜLASYON TEKNİK ÖZELLİKLERİ</h2>
+            <h2 class="section-title text-4xl mb-16 text-center w-full">TEKNİK ALTYAPI</h2>
             <div class="space-y-10">
                 
-                <!-- Özellik 1: Canlı Jüri Yönetimi -->
-                <div class="card bg-stone-800 p-8 rounded-xl flex flex-col md:flex-row items-center gap-8 border-l-4 border-yellow-500">
-                    <i class="fa-solid fa-tablet-screen-button text-6xl text-yellow-400 flex-shrink-0"></i>
-                    <div>
-                        <h3 class="text-2xl font-bold mb-2">Jüri Etkileşim Paneli</h3>
-                        <p class="text-stone-400">Her katılımcı (jüri üyesi), kendi dijital paneli üzerinden delillere erişir, vicdani kanaatini ayarlar, chat üzerinden tartışır ve nihai kararını gerekçesiyle birlikte sisteme kaydeder.</p>
+                <div class="card p-10 rounded-3xl flex flex-col md:flex-row items-center gap-10 border border-yellow-500/20 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-yellow-500/5 group-hover:bg-yellow-500/10 transition duration-500"></div>
+                    <div class="relative w-24 h-24 flex items-center justify-center bg-stone-900 rounded-full border-2 border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.3)] flex-shrink-0">
+                        <i class="fa-solid fa-tablet-screen-button text-4xl text-yellow-400"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-2xl font-black mb-3 text-white">Jüri Etkileşim Paneli</h3>
+                        <p class="text-stone-300 leading-relaxed">Her katılımcı (jüri üyesi), kendi dijital paneli üzerinden delillere erişir, vicdani kanaatini ayarlar, chat üzerinden tartışır ve nihai kararını gerekçesiyle birlikte sisteme kaydeder.</p>
                     </div>
                 </div>
 
-                <!-- Özellik 2: Akıllı Tahta & Yansıtma -->
-                <div class="card bg-stone-800 p-8 rounded-xl flex flex-col md:flex-row items-center gap-8 border-l-4 border-blue-500">
-                    <i class="fa-solid fa-tv text-6xl text-blue-400 flex-shrink-0"></i>
-                    <div>
-                        <h3 class="text-2xl font-bold mb-2">Akıllı Tahta Canlı Akış</h3>
-                        <p class="text-stone-400">Canlı oylama sonuçları, anlık vicdani kanaat durumu, konuşmacı takibi ve acil sistem anonsları büyük ekrana yansıtılarak tüm sınıfın süreci eş zamanlı takip etmesi sağlanır.</p>
+                <div class="card p-10 rounded-3xl flex flex-col md:flex-row items-center gap-10 border border-blue-500/20 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition duration-500"></div>
+                    <div class="relative w-24 h-24 flex items-center justify-center bg-stone-900 rounded-full border-2 border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] flex-shrink-0">
+                        <i class="fa-solid fa-tv text-4xl text-blue-400"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-2xl font-black mb-3 text-white">Akıllı Tahta Canlı Akış</h3>
+                        <p class="text-stone-300 leading-relaxed">Canlı oylama sonuçları, anlık vicdani kanaat durumu, konuşmacı takibi ve acil sistem anonsları büyük ekrana yansıtılarak tüm sınıfın süreci eş zamanlı takip etmesi sağlanır.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Tanıtım Videosu & Sistem Durumu -->
-    <section id="sistem-aksi" class="py-16 bg-stone-700">
-        <div class="max-w-6xl mx-auto px-4">
-            <h2 class="section-title text-3xl mb-12 text-center">TANITIM & SİSTEM AKSİYONU</h2>
+    <section id="sistem-aksi" class="py-24 glass-section bg-stone-900/90">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="section-title text-4xl mb-16 text-center w-full">SİSTEM AKSİYONU</h2>
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Video Alanı -->
-                <div class="lg:col-span-2 video-box p-4 rounded-xl shadow-2xl">
-                    <h3 class="text-xl font-bold mb-3 text-white">Etkinlik Tanıtım Videosu</h3>
-                    <div class="aspect-video bg-black rounded-lg overflow-hidden">
-                        <!-- Buraya YouTube/Vimeo Embed Kodu Gelecek -->
-                        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/3NgRowRSz7E?si=6Z9JHT96ACK3e6Kr" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                <div class="lg:col-span-2 video-box p-1 rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="bg-stone-900 rounded-xl overflow-hidden relative" style="padding-bottom: 56.25%;">
+                        <iframe class="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/3NgRowRSz7E?si=6Z9JHT96ACK3e6Kr" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                     </div>
-                    <p class="text-sm text-slate-400 mt-3">*Video simülasyonun heyecanını özetlemektedir.</p>
+                    <div class="p-4 bg-stone-900/50">
+                        <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-clapperboard text-blue-400 mr-2"></i> Tanıtım Videosu</h3>
+                    </div>
                 </div>
                 
-                <!-- Sistem Durumu Özeti (DİNAMİK) -->
                 <div class="lg:col-span-1 space-y-4">
-                    <h3 class="text-sm font-bold text-yellow-400 uppercase">// CANLI SİSTEM DURUMU</h3>
-                    <div class="card bg-stone-900 p-6 rounded-xl border border-green-500/50">
-                        <span id="live-status-dot" class="status-dot bg-green-500 mr-2"></span> <span class="text-lg font-bold">Simülasyon Durumu</span>
-                        <div class="mt-4 space-y-2 text-sm">
-                            <p class="flex justify-between">Aktif Jüri: <span id="live-seats" class="font-bold text-yellow-400">—</span></p>
-                            <p class="flex justify-between">Toplam Oy: <span id="live-votes" class="font-bold text-blue-400">—</span></p>
-                            <p class="flex justify-between">Akış Fazı: <span id="live-flow" class="font-bold text-green-500">—</span></p>
+                    <div class="flex items-center gap-2 mb-2">
+                         <span class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                        <h3 class="text-sm font-bold text-red-500 uppercase tracking-widest">CANLI VERİ AKIŞI</h3>
+                    </div>
+                    
+                    <div class="card p-6 rounded-2xl border-l-4 border-l-green-500 shadow-lg">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-lg font-bold text-white">Simülasyon Durumu</span>
+                            <span id="live-status-dot" class="status-dot bg-green-500"></span> 
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-stone-900/50 p-3 rounded-lg flex justify-between items-center border border-white/5">
+                                <span class="text-stone-400 text-sm">Aktif Jüri</span>
+                                <span id="live-seats" class="font-mono font-bold text-yellow-400 text-lg">—</span>
+                            </div>
+                            <div class="bg-stone-900/50 p-3 rounded-lg flex justify-between items-center border border-white/5">
+                                <span class="text-stone-400 text-sm">Toplam Oy</span>
+                                <span id="live-votes" class="font-mono font-bold text-blue-400 text-lg">—</span>
+                            </div>
+                            <div class="bg-stone-900/50 p-3 rounded-lg flex justify-between items-center border border-white/5">
+                                <span class="text-stone-400 text-sm">Akış Fazı</span>
+                                <span id="live-flow" class="font-bold text-green-500 text-xs uppercase tracking-wide text-right">—</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="card bg-stone-900 p-6 rounded-xl border border-red-500/50">
-                        <i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i> <span class="text-lg font-bold">Kritik Bilgi</span>
-                        <p class="text-sm text-stone-400 mt-2">Bu simülasyon, öğrenci liderliğinde aktif öğrenmeyi teşvik etmek için tasarlanmıştır.</p>
+                    
+                    <div class="card p-6 rounded-2xl border-l-4 border-l-red-500">
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-circle-info text-red-500 mt-1"></i>
+                            <div>
+                                <span class="text-sm font-bold text-white block">Bilgilendirme</span>
+                                <p class="text-xs text-stone-400 mt-1 leading-relaxed">Bu veriler Firebase veritabanından anlık olarak çekilmektedir. Ders sırasında buradaki veriler sürekli güncellenir.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Kullanım Kılavuzu Section -->
-    <section id="kilavuz" class="py-16 bg-stone-900">
-        <div class="max-w-6xl mx-auto px-4 text-center">
-            <h2 class="section-title text-3xl mb-12">KULLANIM KILAVUZU & DOKÜMANLAR</h2>
-            <div class="card bg-stone-900 p-8 rounded-xl border border-blue-500/50 space-y-4 shadow-lg">
-                <p class="text-lg text-white font-semibold">Etkinliğe tam hakimiyet için gerekli tüm dokümanlar burada.</p>
-                <a href="kullanim_kilavuzu.pdf" target="_blank" class="inline-flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-500 transition">
-                    <i class="fa-solid fa-file-pdf mr-3"></i> KILAVUZU İNDİR
-                </a>
+    <section id="kilavuz" class="py-24 glass-section">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <h2 class="section-title text-3xl mb-12">KAYNAKLAR</h2>
+            <div class="card p-10 rounded-3xl border border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.1)] relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl"></div>
+                <div class="relative z-10">
+                    <h3 class="text-2xl font-bold text-white mb-4">Dijital Kullanım Kılavuzu</h3>
+                    <p class="text-stone-400 mb-8 max-w-2xl mx-auto">Sistemin nasıl kullanılacağı, jüri paneli girişleri, oy kullanma işlemleri ve teknik detaylar için hazırlanan kapsamlı kılavuzu inceleyin.</p>
+                    <a href="kullanim_kilavuzu.pdf" target="_blank" class="inline-flex items-center justify-center bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-500 transition shadow-lg gap-3 group">
+                        <i class="fa-solid fa-file-pdf text-xl group-hover:animate-bounce"></i> PDF OLARAK İNDİR
+                    </a>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Kayıt & İletişim Section -->
-    <section id="iletisim" class="py-16 bg-stone-800">
-        <div class="max-w-4xl mx-auto px-4">
-            <h2 class="section-title text-3xl mb-12 text-center">İLETİŞİM VE KAYIT</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- YENİ: Organizatör Bilgisi -->
-                <div class="card bg-stone-900 p-6 rounded-xl border border-green-500/50 shadow-lg">
-                    <h3 class="text-xl font-semibold text-white mb-4"><i class="fa-solid fa-user-graduate mr-2 text-green-500"></i> Organizatör</h3>
-                    <p class="text-stone-400 mb-4">Bu proje, Atatürk Üniversitesi Sosyal Bilgiler Öğretmenliği bölümü bünyesinde, ders dışı öğrenme ve dijital pedagoji amacıyla geliştirilmiştir.</p>
-                    <p class="text-sm text-yellow-400">#EğitimdeDijitalDönüşüm</p>
+    <section id="iletisim" class="py-24 glass-section bg-stone-950/90">
+        <div class="max-w-5xl mx-auto px-4">
+            <h2 class="section-title text-4xl mb-16 text-center w-full">KATILIM VE İLETİŞİM</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="card p-8 rounded-3xl border border-green-500/30 h-full flex flex-col justify-center">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-green-900/50 flex items-center justify-center border border-green-500">
+                            <i class="fa-solid fa-university text-green-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Atatürk Üniversitesi</h3>
+                            <p class="text-xs text-stone-500 uppercase tracking-widest">Sosyal Bilgiler Öğretmenliği</p>
+                        </div>
+                    </div>
+                    <p class="text-stone-400 mb-6 leading-relaxed">Bu proje, öğretmen adaylarının mesleki gelişimine katkı sağlamak, değerler eğitimini dijitalleştirmek ve interaktif öğrenme ortamları oluşturmak amacıyla geliştirilmiştir.</p>
+                    <div class="mt-auto">
+                        <span class="inline-block bg-stone-800 text-yellow-400 px-3 py-1 rounded text-xs font-bold border border-yellow-500/20 mr-2">#EğitimdeDijitalDönüşüm</span>
+                        <span class="inline-block bg-stone-800 text-blue-400 px-3 py-1 rounded text-xs font-bold border border-blue-500/20">#AdaletSimülasyonu</span>
+                    </div>
                 </div>
 
-                <!-- Kayıt Formu -->
-                <div id="kayit" class="card bg-stone-900 p-6 rounded-xl border border-yellow-500/50 shadow-lg">
-                    <h3 class="text-xl font-semibold text-white mb-4"><i class="fa-solid fa-user-plus mr-2 text-yellow-500"></i> Katılımcı Kayıt</h3>
-                    <form onsubmit="submitRegistration(event)" class="space-y-3 text-sm">
-                        <input type="text" id="reg-name" placeholder="Adınız Soyadınız" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-white" required>
-                        <input type="email" id="reg-email" placeholder="E-posta Adresiniz" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-white" required>
-                        <input type="tel" id="reg-phone" placeholder="Telefon Numaranız (05XX...)" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-white focus:border-yellow-500 outline-none" required>
-                        <select id="reg-role" class="w-full bg-stone-800 border border-stone-700 rounded-lg p-3 text-white">
-                            <option value="">Hangi Rolde Katılmak İstersiniz?</option>
-                            <option value="Juri">Jüri Üyesi</option>
-                            <option value="Gozlemci">Gözlemci (Hakim/Öğretmen)</option>
-                        </select>
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition shadow-md">
+                <div id="kayit" class="card p-8 rounded-3xl border border-yellow-500/30 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-yellow-500 text-stone-900 text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-widest">Başvurular Açık</div>
+                    <h3 class="text-2xl font-black text-white mb-6 flex items-center gap-2"><i class="fa-solid fa-user-plus text-yellow-500"></i> Katılımcı Kayıt</h3>
+                    <form onsubmit="submitRegistration(event)" class="space-y-4">
+                        <div>
+                            <label class="text-xs text-stone-500 font-bold ml-1 mb-1 block uppercase">Ad Soyad</label>
+                            <input type="text" id="reg-name" placeholder="Tam Adınız" class="w-full bg-stone-900/80 border border-stone-700 rounded-xl p-4 text-white focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 outline-none transition" required>
+                        </div>
+                        <div>
+                            <label class="text-xs text-stone-500 font-bold ml-1 mb-1 block uppercase">E-Posta</label>
+                            <input type="email" id="reg-email" placeholder="ornek@atauni.edu.tr" class="w-full bg-stone-900/80 border border-stone-700 rounded-xl p-4 text-white focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 outline-none transition" required>
+                        </div>
+                        <div>
+                            <label class="text-xs text-stone-500 font-bold ml-1 mb-1 block uppercase">Telefon</label>
+                            <input type="tel" id="reg-phone" placeholder="05XX..." class="w-full bg-stone-900/80 border border-stone-700 rounded-xl p-4 text-white focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 outline-none transition" required>
+                        </div>
+                        <div>
+                            <label class="text-xs text-stone-500 font-bold ml-1 mb-1 block uppercase">Katılım Rolü</label>
+                            <select id="reg-role" class="w-full bg-stone-900/80 border border-stone-700 rounded-xl p-4 text-white focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 outline-none transition appearance-none cursor-pointer">
+                                <option value="">Seçiniz...</option>
+                                <option value="Juri">Jüri Üyesi (Öğrenci)</option>
+                                <option value="Gozlemci">Gözlemci (Akademisyen/Misafir)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-stone-900 font-black py-4 rounded-xl transition shadow-[0_0_20px_rgba(234,179,8,0.4)] transform hover:scale-[1.02] mt-2">
                             KAYDI TAMAMLA
                         </button>
                     </form>
@@ -326,9 +415,18 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-stone-900 border-t border-stone-800 py-6 text-center text-sm text-stone-500">
-        <p>&copy; 2025 Adalet Simülasyonu.</p>
+    <footer class="bg-stone-950 border-t border-white/10 py-8 text-center">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-left">
+                <p class="text-white font-bold">Adalet Simülasyonu © 2026</p>
+                <p class="text-stone-500 text-xs mt-1">Muhammet Emin Aydın tarafından geliştirilmiştir.</p>
+            </div>
+            <div class="flex gap-4">
+                <a href="#" class="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#" class="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-stone-400 hover:text-white hover:bg-stone-800 transition"><i class="fa-solid fa-envelope"></i></a>
+            </div>
+        </div>
     </footer>
 
     <script>
@@ -340,9 +438,53 @@
         const VOTES = 'sim_votes';
         const SETTINGS = 'sim_settings';
 
-        /**
-         * Başvuru formunu Firebase'e kaydeder.
-         */
+        // === ARKA PLAN SLIDER YÖNETİMİ ===
+        const backgroundImages = [
+            'https://wallpapers.com/images/high/justice-scale-and-lady-justice-k7iegk4785mxrnj6.webp', // Adalet Heykeli
+            'https://wallpapers.com/images/high/lady-justice-books-implxi2wanwxzyrh.webp', // Üniversite/Kampüs Karlı
+            'https://wallpapers.com/images/high/impartial-lady-justice-c8wdy9unt9k2fk4e.webp', // Ahşap Masa/Ciddiyet
+            'https://wallpapers.com/images/high/lady-justice-golden-yellow-jodkooxmcccjccpv.webp'  // Kütüphane
+        ];
+
+        function initBackgroundSlider() {
+            const container = document.getElementById('bg-slider-container');
+            if(!container) return;
+
+            // HTML elementlerini oluştur
+            backgroundImages.forEach((url, index) => {
+                const div = document.createElement('div');
+                div.className = `bg-slide ${index === 0 ? 'active' : ''}`;
+                div.style.backgroundImage = `url('${url}')`;
+                container.appendChild(div);
+            });
+
+            // Döngü başlat
+            let currentIndex = 0;
+            const slides = document.querySelectorAll('.bg-slide');
+            setInterval(() => {
+                slides[currentIndex].classList.remove('active');
+                currentIndex = (currentIndex + 1) % slides.length;
+                slides[currentIndex].classList.add('active');
+            }, 7000); 
+        }
+
+        // Header Scroll Efekti
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            if (window.scrollY > 50) {
+                header.classList.add('py-0');
+            } else {
+                header.classList.remove('py-0');
+            }
+        });
+
+        // Sayfa Yüklenince
+        document.addEventListener('DOMContentLoaded', () => {
+            initBackgroundSlider();
+            renderLiveStatus();
+        });
+        // ===========================================
+
         window.submitRegistration = async function(e) {
             e.preventDefault();
             const name = document.getElementById('reg-name').value;
@@ -359,12 +501,11 @@
                 await db.collection(REGISTRATIONS).add({
                     name: name,
                     email: email,
-		    phone: phone,
+                    phone: phone,
                     role: role,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                // Formu temizle
                 e.target.reset(); 
                 showAlert('Başvurunuz başarıyla alındı! Teşekkür ederiz.', 'green');
 
@@ -374,14 +515,10 @@
             }
         };
 
-        /**
-         * Özel uyarı mesajını gösterir.
-         */
         function showAlert(message, color) {
             const alertBox = document.getElementById('custom-alert');
             alertBox.innerText = message;
             
-            // Renk ayarlaması
             alertBox.classList.remove('bg-red-600', 'bg-green-600');
             alertBox.className = 'custom-alert show-alert';
             if (color === 'red') {
@@ -395,34 +532,28 @@
             }, 3000);
         }
 
-        /**
-         * Canlı sistem durumunu veritabanından çeker ve paneli günceller.
-         */
         window.renderLiveStatus = function() {
-            // Aktif Jüri Sayısı
             db.collection(SEATS).onSnapshot(snap => {
                 const seatsCount = snap.size;
-                document.getElementById('live-seats').innerText = `${seatsCount}/35`;
+                const el = document.getElementById('live-seats');
+                if(el) el.innerText = `${seatsCount}/35`;
             });
 
-            // Toplam Oy Sayısı
             db.collection(VOTES).onSnapshot(snap => {
                 const votesCount = snap.size;
-                document.getElementById('live-votes').innerText = votesCount;
+                const el = document.getElementById('live-votes');
+                if(el) el.innerText = votesCount;
             });
             
-            // Akış Fazı ve Sistem Durumu
             db.collection(SETTINGS).doc('flow').onSnapshot(doc => {
                 if (doc.exists) {
                     const data = doc.data();
                     const isLocked = data.system_locked;
                     const speaker = data.current_speaker || 'Hakim';
-                    const currentFlow = data.current_flow || 'Giriş'; // Eklenen yeni akış bilgisi
-
-                    // Akış Fazı
-                    document.getElementById('live-flow').innerText = isLocked ? 'KİLİTLİ (BAKIM)' : speaker + ' Konuşuyor';
                     
-                    // Kilit Durumu İbresi
+                    const flowEl = document.getElementById('live-flow');
+                    if(flowEl) flowEl.innerText = isLocked ? 'KİLİTLİ (BAKIM)' : speaker + ' Konuşuyor';
+                    
                     const dot = document.getElementById('live-status-dot');
                     if (dot) {
                          dot.classList.remove('bg-green-500', 'bg-red-500');
@@ -432,15 +563,6 @@
                 }
             });
         };
-
-        // Sayfa yüklendiğinde canlı durumu başlat
-        document.addEventListener('DOMContentLoaded', renderLiveStatus);
     </script>
-
 </body>
-
 </html>
-
-
-
-
