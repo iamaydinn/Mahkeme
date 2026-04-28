@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Sertifikalar - USBES 2026</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Playfair+Display:ital,wght@0,700;1,400&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --navy: #0a1931; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
+        body { font-family: 'Montserrat', sans-serif; background: #2c3e50; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sol Panel */
+        .admin-panel { width: 350px; background: #111; color: white; padding: 25px; display: flex; flex-direction: column; z-index: 100; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+        .admin-panel h2 { font-family: 'Cinzel', serif; color: var(--gold); font-size: 18px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        textarea { width: 100%; flex-grow: 1; background: #222; border: 1px solid #444; color: white; padding: 15px; border-radius: 5px; resize: none; font-size: 14px; margin-bottom: 15px; }
+        .btn-main { background: var(--gold); color: black; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 5px; text-transform: uppercase; transition: 0.3s; }
+        .btn-main:hover { background: #f9f295; transform: translateY(-2px); }
+
+        /* Sağ Alan (Önizleme) */
+        .preview-container { flex-grow: 1; display: flex; justify-content: center; align-items: center; background: #555; overflow: auto; padding: 20px; }
+        
+        /* SERTİFİKA ANA YAPI (A4 Yatay) */
+        .certificate {
+            width: 297mm; height: 210mm; background: white; position: relative;
+            transform: scale(0.45); transform-origin: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');
+            padding: 40px;
+        }
+
+        /* Kenarlıklar */
+        .outer-frame { position: absolute; top: 15px; left: 15px; right: 15px; bottom: 15px; border: 2px solid var(--gold); }
+        .inner-frame { position: absolute; top: 25px; left: 25px; right: 25px; bottom: 25px; border: 6px double var(--navy); display: flex; flex-direction: column; align-items: center; padding: 40px; }
+
+        /* İçerik Hizalama */
+        .logo-center { width: 110px; margin-bottom: 20px; }
+        
+        .header-title { font-family: 'Cinzel', serif; font-size: 26px; color: var(--navy); margin: 0; text-align: center; font-weight: 700; }
+        .sub-header { font-size: 13px; color: var(--gold); letter-spacing: 3px; font-weight: 600; margin-top: 5px; text-transform: uppercase; }
+
+        .document-type { font-family: 'Playfair Display', serif; font-size: 55px; font-style: italic; color: var(--navy); margin: 30px 0 10px 0; }
+        
+        .presented-to { font-size: 16px; text-transform: uppercase; letter-spacing: 2px; color: #777; margin-top: 10px; }
+        .name-area { font-family: 'Cinzel', serif; font-size: 52px; color: black; border-bottom: 2px solid var(--gold); min-width: 600px; padding: 5px 0; margin: 10px 0 30px 0; text-align: center; font-weight: bold; }
+
+        .appreciation-body { font-family: 'Playfair Display', serif; font-size: 19px; line-height: 1.7; color: #333; max-width: 85%; text-align: center; font-style: italic; margin-top: 0; }
+
+        /* Alt Kısım Sabitlendi */
+        .footer-signatures { width: 100%; display: flex; justify-content: space-around; margin-top: auto; padding-bottom: 10px; }
+        .sig-box { width: 250px; text-align: center; }
+        .sig-line { border-top: 2px solid var(--navy); padding-top: 10px; font-weight: 700; color: var(--navy); font-size: 16px; }
+        .sig-title { font-size: 12px; color: #666; text-transform: uppercase; margin-top: 5px; }
+
+        #print-zone { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="admin-panel">
+    <h2>Sertifika Yönetimi</h2>
+    <p style="font-size: 11px; color: #888;">İsimleri alt alta girin (ilk isim önizlenir):</p>
+    <textarea id="nameInput" oninput="liveUpdate()" placeholder="Muhammet Emin Aydın&#10;Abdussamed Doğramacı"></textarea>
+    <button class="btn-main" onclick="printAll()">BELGELERİ OLUŞTUR (PDF)</button>
+    <div style="margin-top: 20px; font-size: 11px; text-align: center; opacity: 0.5;">
+        USBES 2026 | Erzurum<br>Atatürk Üniversitesi
+    </div>
+</div>
+
+<div class="preview-container">
+    <div class="certificate" id="cert-template">
+        <div class="outer-frame"></div>
+        <div class="inner-frame">
+            <img src="https://upload.wikimedia.org/wikipedia/tr/c/cc/Ataturkuni_logo.png" class="logo-center" alt="ATAUNI">
+            
+            <h1 class="header-title">ADALET SİMÜLASYONU ATÖLYESİ</h1>
+            <div class="sub-header">KANIITTAN KARARA: ADALET TEMELLİ DİJİTAL MUHAKEME</div>
+
+            <div class="document-type">Teşekkür Belgesi</div>
+            
+            <div class="presented-to">Sayın</div>
+            <div class="name-area" id="disp-name">MUHAMMET EMİN AYDIN</div>
+
+            <p class="appreciation-body">
+                USBES 2026 Sempozyumu bünyesinde gerçekleştirilen "Adalet Simülasyonu" atölye çalışmasına 
+                sağladığınız aktif katılım, sergilediğiniz analitik muhakeme ve adaletin dijital 
+                geleceğine sunduğunuz değerli katkılardan dolayı teşekkürlerimizi sunarız.
+            </p>
+
+            <div class="footer-signatures">
+                <div class="sig-box">
+                    <div class="sig-line">NURSİMA KARA</div>
+                    <div class="sig-title">Atölye Yürütücüsü</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line">USBES 2026</div>
+                    <div class="sig-title">Düzenleme Kurulu</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="print-zone"></div>
+
+<script>
+    function liveUpdate() {
+        const val = document.getElementById('nameInput').value.split('\n')[0];
+        document.getElementById('disp-name').innerText = val.toUpperCase() || "KATILIMCI İSMİ";
+    }
+
+    async function printAll() {
+        const names = document.getElementById('nameInput').value.split('\n').filter(n => n.trim() !== "");
+        const zone = document.getElementById('print-zone');
+        zone.innerHTML = '';
+        zone.style.display = 'block';
+
+        if(names.length === 0) { alert("Lütfen en az bir isim girin."); return; }
+
+        for (let name of names) {
+            const clone = document.getElementById('cert-template').cloneNode(true);
+            clone.style.transform = "none";
+            clone.style.boxShadow = "none";
+            clone.querySelector('#disp-name').innerText = name.toUpperCase().trim();
+            zone.appendChild(clone);
+        }
+
+        const opt = {
+            margin: 0,
+            filename: 'USBES2026_Tesekkur_Belgeleri.pdf',
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
+
+        await html2pdf().set(opt).from(zone).save();
+        zone.style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
