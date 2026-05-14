@@ -159,11 +159,13 @@
                 const cardClass = isGuilty ? 'card-guilty' : 'card-notguilty';
                 const voteColor = isGuilty ? 'text-red-500' : 'text-green-500';
                 const icon = isGuilty ? 'fa-gavel' : 'fa-dove';
-                
-                container.innerHTML += `
+
+                 container.innerHTML += `
         <div class="card">
             <h3>${visibleName}</h3>
         </div>
+    `;
+});
                 
                 // Zamanı formatla (Varsa)
                 let timeStr = "";
