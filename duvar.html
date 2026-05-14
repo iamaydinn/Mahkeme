@@ -97,7 +97,7 @@
 
         <div class="flex gap-2">
             <button onclick="filterVotes('all')" class="filter-btn active px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:bg-slate-800 transition">TÜMÜ</button>
-            <button onclick="filterVotes('SUÇLU')" class="filter-btn px-4 py-2 rounded-lg border border-red-900/50 text-red-500 text-xs font-bold hover:bg-red-900/20 transition">Dr.Selim Arda</button>
+            <button onclick="filterVotes('SUÇLU')" class="filter-btn px-4 py-2 rounded-lg border border-orange-900/50 text-orange-500 text-xs font-bold hover:bg-prange-900/20 transition">Dr.Selim Arda</button>
             <button onclick="filterVotes('SUÇSUZ')" class="filter-btn px-4 py-2 rounded-lg border border-green-900/50 text-green-500 text-xs font-bold hover:bg-green-900/20 transition">Ayşe Demir</button>
         </div>
     </header>
@@ -157,7 +157,7 @@
                 const isGuilty = data.vote === 'SUÇLU';
                 const visibleName = isGuilty ? 'Dr.Selim Arda' : 'Ayşe Demir';
                 const cardClass = isGuilty ? 'card-guilty' : 'card-notguilty';
-                const voteColor = isGuilty ? 'text-red-500' : 'text-green-500';
+                const voteColor = isGuilty ? 'text-orange-500' : 'text-green-500';
                 const icon = isGuilty ? 'fa-gavel' : 'fa-dove';
 
           
