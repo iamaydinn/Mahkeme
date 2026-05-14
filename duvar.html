@@ -160,13 +160,7 @@
                 const voteColor = isGuilty ? 'text-red-500' : 'text-green-500';
                 const icon = isGuilty ? 'fa-gavel' : 'fa-dove';
 
-                 container.innerHTML += `
-        <div class="card">
-            <h3>${visibleName}</h3>
-        </div>
-    `;
-});
-                
+          
                 // Zamanı formatla (Varsa)
                 let timeStr = "";
                 if(data.timestamp) {
@@ -181,7 +175,7 @@
                         <span>${timeStr}</span>
                     </div>
                     <h3 class="text-xl font-bold ${voteColor} mb-2 flex items-center gap-2">
-                        <i class="fa-solid ${icon}"></i> ${data.vote}
+                        <i class="fa-solid ${icon}"></i> ${visibleName}
                     </h3>
                     <p class="text-sm text-slate-300 leading-relaxed font-light italic">
                         "${data.reason || 'Gerekçe belirtilmemiş.'}"
