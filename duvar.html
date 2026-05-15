@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
-    <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 
@@ -90,7 +89,6 @@
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- HEADER -->
     <header class="h-20 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md flex justify-between items-center px-6 md:px-12 z-20 shrink-0">
         <div class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-400">
@@ -110,27 +108,23 @@
         </div>
     </header>
 
-    <!-- ANA İÇERİK -->
     <main class="flex-1 overflow-y-auto p-6 md:p-12 relative">
-        <!-- Arka Plan Süsü -->
         <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] bg-blue-600/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
 
         <div id="wall-container" class="masonry-grid max-w-7xl mx-auto">
-            <!-- Kartlar buraya dinamik olarak gelecek -->
             <div class="text-center col-span-full py-20 text-slate-600 animate-pulse">
                 Veriler bekleniyor...
             </div>
         </div>
     </main>
 
-    <!-- FOOTER -->
     <footer class="h-10 border-t border-slate-900 bg-slate-950 flex items-center justify-center text-[10px] text-slate-600 shrink-0">
         ADALET SİMÜLASYONU ANALİTİK MODÜLÜ
     </footer>
 
     <script>
-        // Firebase Yapılandırması (Ana dosyanızla aynı olmalı)
-        const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac00df3325ec6afd" };
+        // Firebase Yapılandırması
+        const firebaseConfig = { apiKey: "AIzaSyB4afTGFkOqUjeVfqfHxgKCTbGHvftZIO4", authDomain: "mahkeme-sim.firebaseapp.com", projectId: "mahkeme-sim", storageBucket: "mahkeme-sim.firebasestorage.app", messagingSenderId: "573778878408", appId: "1:573778878408:web:67ab4ac006df3325ec6afd" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const VOTES_COLLECTION = 'sim_votes';
@@ -184,6 +178,9 @@
                 // Zamanı formatla (Varsa)
                 let timeStr = "";
                 if(data.timestamp) {
+                    const date = new Date(data.timestamp.seconds * 1000);
+                    timeStr = date.getHours() + ":" + String(date.getMinutes()).padStart(2, '0');
+                }
 
                 const html = `
                 <div class="reason-card ${cardClass}">
