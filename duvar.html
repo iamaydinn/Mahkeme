@@ -56,6 +56,13 @@
         }
         .card-notguilty:hover { box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); }
 
+        /* Tarafsız Kartı */
+        .card-neutral {
+            border-left: 4px solid #94a3b8; /* slate-400 */
+            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.1);
+        }
+        .card-neutral:hover { box-shadow: 0 10px 30px rgba(148, 163, 184, 0.3); }
+
         /* İsim Etiketi */
         .juror-tag {
             font-size: 0.7rem;
@@ -97,8 +104,9 @@
 
         <div class="flex gap-2">
             <button onclick="filterVotes('all')" class="filter-btn active px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:bg-slate-800 transition">TÜMÜ</button>
-            <button onclick="filterVotes('SUÇLU')" class="filter-btn px-4 py-2 rounded-lg border border-orange-900/50 text-orange-500 text-xs font-bold hover:bg-prange-900/20 transition">Dr.Selim Arda</button>
+            <button onclick="filterVotes('SUÇLU')" class="filter-btn px-4 py-2 rounded-lg border border-orange-900/50 text-orange-500 text-xs font-bold hover:bg-orange-900/20 transition">Dr.Selim Arda</button>
             <button onclick="filterVotes('SUÇSUZ')" class="filter-btn px-4 py-2 rounded-lg border border-green-900/50 text-green-500 text-xs font-bold hover:bg-green-900/20 transition">Ayşe Demir</button>
+            <button onclick="filterVotes('TARAFSIZ')" class="filter-btn px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-xs font-bold hover:bg-slate-800 transition">Tarafsız</button>
         </div>
     </header>
 
@@ -153,20 +161,29 @@
                 return;
             }
 
-            filteredData.forEach(data => {
-                const isGuilty = data.vote === 'SUÇLU';
-                const visibleName = isGuilty ? 'Dr.Selim Arda' : 'Ayşe Demir';
-                const cardClass = isGuilty ? 'card-guilty' : 'card-notguilty';
-                const voteColor = isGuilty ? 'text-orange-500' : 'text-green-500';
-                const icon = isGuilty ? 'fa-gavel' : 'fa-dove';
+           filteredData.forEach(data => {
+                // Varsayılan (Tarafsız) Ayarlar
+                let visibleName = 'Tarafsız';
+                let cardClass = 'card-neutral';
+                let voteColor = 'text-slate-400';
+                let icon = 'fa-scale-balanced';
 
-          
+                // Oya göre ayarları güncelle
+                if (data.vote === 'SUÇLU') {
+                    visibleName = 'Dr.Selim Arda';
+                    cardClass = 'card-guilty';
+                    voteColor = 'text-orange-500';
+                    icon = 'fa-gavel';
+                } else if (data.vote === 'SUÇSUZ') {
+                    visibleName = 'Ayşe Demir';
+                    cardClass = 'card-notguilty';
+                    voteColor = 'text-green-500';
+                    icon = 'fa-dove';
+                }
+
                 // Zamanı formatla (Varsa)
                 let timeStr = "";
                 if(data.timestamp) {
-                    const date = new Date(data.timestamp.seconds * 1000);
-                    timeStr = date.getHours() + ":" + String(date.getMinutes()).padStart(2, '0');
-                }
 
                 const html = `
                 <div class="reason-card ${cardClass}">
