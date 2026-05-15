@@ -769,7 +769,7 @@
                             <td class="p-2 font-mono text-slate-400">${d.seatId}</td>
                             <td class="p-2 font-bold text-white">${d.name}</td>
                             <td class="p-2 text-center text-yellow-400 font-mono font-bold">${scores[d.seatId] || 0}</td>
-                            <td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${voteData.vote==='SUÇLU'?'bg-red-900 text-red-200':(voteData.vote==='SUÇSUZ'?'bg-green-900 text-green-200':'bg-slate-600')}">${voteData.vote}</span></td>
+                            <td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${voteData.vote==='SUÇLU'?'bg-red-900 text-red-200':(voteData.vote==='SUÇSUZ'?'bg-green-900 text-green-200':(voteData.vote==='TARAFSIZ'?'bg-slate-500 text-white':'bg-slate-600'))}">${voteData.vote}</span></td>
                             <td class="p-2 text-xs text-slate-300 italic max-w-xs truncate" title="${voteData.reason}">${voteData.reason}</td>
                         </tr>`;
                 });
